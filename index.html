@@ -18,84 +18,70 @@
         body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); display: flex; justify-content: center; height: 100vh; overflow: hidden; }
         #app { width: 100%; max-width: 450px; background: white; display: flex; flex-direction: column; position: relative; }
 
-        /* Login com o Raio */
-        #login { padding: 40px; display: flex; flex-direction: column; gap: 15px; justify-content: center; height: 100%; z-index: 20; position: absolute; width: 100%; box-sizing: border-box; background: white; }
-        .logo-container { text-align: center; margin-bottom: 20px; }
-        .raio-icon { 
-            background: var(--gradient); 
-            width: 80px; height: 80px; 
-            border-radius: 50%; 
-            display: flex; align-items: center; justify-content: center; 
-            margin: 0 auto 15px; 
-            font-size: 40px; color: white;
-            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
-        }
-
-        input { width: 100%; padding: 15px; border: 2px solid #f1f5f9; border-radius: 12px; font-size: 16px; box-sizing: border-box; outline: none; }
-        .main-btn { background: var(--gradient); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; }
-        .main-btn:hover { opacity: 0.9; transform: translateY(-2px); }
+        /* Login */
+        #login { padding: 40px; display: flex; flex-direction: column; gap: 15px; justify-content: center; height: 100%; z-index: 50; position: absolute; width: 100%; box-sizing: border-box; background: white; }
+        .raio-icon { background: var(--gradient); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; font-size: 40px; color: white; box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3); }
 
         /* Chat */
         #chat { display: none; flex: 1; flex-direction: column; overflow: hidden; }
-        #topo { padding: 15px 20px; background: white; border-bottom: 1px solid #f1f5f9; }
+        #topo { padding: 15px 20px; background: white; border-bottom: 1px solid #f1f5f9; position: relative; }
         .info-sala { display: flex; justify-content: space-between; align-items: center; }
-        .online-count { font-size: 12px; color: #10b981; font-weight: 600; }
+        
+        /* Configurações */
+        .btn-config { background: none; border: none; font-size: 20px; cursor: pointer; color: #64748b; }
+        #menu-config { position: absolute; top: 60px; right: 20px; background: white; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 10px; padding: 15px; display: none; flex-direction: column; gap: 10px; z-index: 100; border: 1px solid #eee; }
+        .config-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #334155; cursor: pointer; }
 
         #mensagens { flex: 1; padding: 20px; overflow-y: auto; background: #f8fafc; display: flex; flex-direction: column; gap: 12px; }
-        .msg { padding: 10px 15px; border-radius: 18px; max-width: 80%; font-size: 14px; line-height: 1.4; position: relative; word-wrap: break-word; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        
+        .msg { padding: 10px 15px; border-radius: 18px; max-width: 80%; font-size: 14px; line-height: 1.4; position: relative; animation: fadeIn 0.3s ease; }
         .msg-out { align-self: flex-start; background: #ffffff; border: 1px solid #e2e8f0; }
         .msg-in { align-self: flex-end; background: var(--primary); color: white; }
         
-        .msg img { max-width: 100%; border-radius: 12px; margin-top: 5px; display: block; }
-        .expirado-img { width: 120px; opacity: 0.5; filter: grayscale(1); padding: 10px; display: block; margin: 0 auto; }
+        /* Destaque da marcação @ */
+        .mention { background: #ffeb3b; color: #000; padding: 2px 5px; border-radius: 4px; font-weight: bold; }
+        
+        .expirado-img { width: 100px; opacity: 0.5; filter: grayscale(1); display: block; margin: 0 auto; }
         .timer-tag { font-size: 9px; opacity: 0.6; display: block; margin-top: 4px; text-align: right; }
 
-        /* Menu Anexos */
-        #envio { padding: 15px; background: white; display: flex; gap: 10px; border-top: 1px solid #f1f5f9; align-items: center; position: relative; }
-        #menu-anexos { position: absolute; bottom: 85px; left: 15px; background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: none; flex-direction: column; border: 1px solid #eee; overflow: hidden; }
-        .opt-anexo { padding: 15px 20px; border: none; background: white; cursor: pointer; font-size: 14px; display: flex; gap: 10px; font-weight: 600; text-align: left; }
-        .opt-anexo:hover { background: #f8fafc; color: var(--primary); }
-        
-        .btn-plus { background: #f1f5f9; width: 42px; height: 42px; border-radius: 50%; border: none; cursor: pointer; font-size: 24px; color: #64748b; }
-        .send-btn { background: var(--primary); color: white; width: 42px; height: 42px; border-radius: 50%; border: none; cursor: pointer; font-size: 18px; }
+        #envio { padding: 15px; background: white; display: flex; gap: 10px; border-top: 1px solid #f1f5f9; align-items: center; }
+        input { width: 100%; padding: 12px; border: 2px solid #f1f5f9; border-radius: 12px; outline: none; }
+        .btn-plus, .send-btn { background: #f1f5f9; width: 42px; height: 42px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .send-btn { background: var(--primary); color: white; }
     </style>
 </head>
 <body>
 
 <div id="app">
     <div id="login">
-        <div class="logo-container">
-            <div class="raio-icon">⚡</div>
-            <h2 style="margin: 0; font-weight: 900; font-size: 28px; letter-spacing: -1px;">Swiftly</h2>
-            <p style="color: #64748b; font-size: 13px; margin-top: 5px;">Privacidade em tempo real</p>
-        </div>
-        <input id="nick" placeholder="Seu apelido" maxlength="12">
+        <div class="raio-icon">⚡</div>
+        <h2 style="text-align: center; margin: 0;">Swiftly</h2>
+        <input id="nick" placeholder="Seu apelido (sem espaços)" maxlength="12">
         <input id="sala" placeholder="Código da sala">
-        <button class="main-btn" onclick="entrar()">Entrar no Chat</button>
+        <button class="main-btn" style="width:100%; background:var(--gradient); color:white; border:none; padding:15px; border-radius:12px; font-weight:700; cursor:pointer;" onclick="entrar()">Entrar</button>
     </div>
 
     <div id="chat">
         <div id="topo">
             <div class="info-sala">
                 <div><b>Sala:</b> <span id="nomeSala" style="color:var(--primary)"></span></div>
-                <div class="online-count">● <span id="contagem">0</span> online</div>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span id="contagem" style="font-size:12px; color:#10b981; font-weight:600;">0</span>
+                    <button class="btn-config" onclick="toggleConfig()">⚙️</button>
+                </div>
+            </div>
+            
+            <div id="menu-config">
+                <label class="config-item"><input type="checkbox" id="chkSom"> Ativar Som 🔊</label>
+                <label class="config-item"><input type="checkbox" id="chkAlerta"> Alerta na Aba 🔔</label>
             </div>
         </div>
 
         <div id="mensagens"></div>
 
-        <div id="menu-anexos">
-            <button class="opt-anexo" onclick="document.getElementById('img-input').click()">🖼️ Enviar Foto</button>
-            <button class="opt-anexo" onclick="document.getElementById('file-input').click()">📄 Enviar Arquivo</button>
-        </div>
-
         <div id="envio">
+            <button class="btn-plus" onclick="document.getElementById('img-input').click()">+</button>
             <input type="file" id="img-input" accept="image/*" style="display:none" onchange="processarFoto(this)">
-            <input type="file" id="file-input" style="display:none" onchange="enviarArquivo(this)">
-            <button class="btn-plus" onclick="toggleMenu()">+</button>
-            <input id="texto" placeholder="Mensagem..." onkeydown="if(event.key==='Enter') enviarTexto()">
+            <input id="texto" placeholder="Mensagem... use @nome" onkeydown="if(event.key==='Enter') enviarTexto()">
             <button class="send-btn" onclick="enviarTexto()">➤</button>
         </div>
     </div>
@@ -111,75 +97,106 @@
 
     const db = firebase.database();
     let salaAtual, nickAtual, entrarTime;
+    let originalTitle = document.title;
+    let blinkInterval = null;
+    let totalUsuarios = 0;
 
-    // Ícone de Arquivo Expirado
-    const imgExpirado = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAABkCAMAAAB9v93fAAAAMFBMVEUAAAD7+vv///8vLy8mJiYWFhYMDAwHBwcFBQUDAwMCAgIBAQEAAAD///8vLy8mJiYWFhY9MUK9AAAAEHRSTlMAECBAUGBwgI+fr7/P3+///1Y8X3YAAAFTSURBVHja7dfRToMwEAVAhYpY//8nF8TEnS6mS9uY9GZfXNoHLmS3S6pWq1arVatVq1WrVavV/6vWGidrFpXvK7V6m6zZV76v1BptsuZe+b5S67PJmkvl+0pt0SZrHpXvK7V5m6x5Vr6v1B7bZK2j8n2l9twmawOV7yu19m2yNlD5vlIbtcnai8r3ldqkTdZeqXxfqS3ZZG2t8n2ltmqTtbXK95Xauk3W3irfV2rrNll7q3xfqe3aZO2v8n2ltm+TtX+V7yu1Q5usA6p8X6kd2mQdUOX7Su3YJuugKt9Xasc2WQdV+b5SO7XJOqjK95XaqU3WfVW+r9R6m6z9qnxv1ZpXF6x5Vb63as0rF6x5Vb63as0rL1jzqnxv1ZpXEbDmVfneqjWvOmDNq/K9VWteDcA6rMr3Vq15NQLrsCrfW7Xm1RSsw6p8b9WaVzOwDqvyvVVrXs3AOqzK91atpWq1arVatVqtVv9v9QYv0hMA9pI9qAAAAABJRU5ErkJggg==";
+    const notifySound = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
+    const imgExpirado = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAABkCAMAAAB9v93fAAAAMFBMVEUAAAD7+vv///8vLy8mJiYWFhYMDAwHBwcFBQUDAwMCAgIBAQEAAAD///8vLy8mJiYWFhY9MUK9AAAAEHRSTlMAECBAUGBwgI+fr7/P3+///1Y8X3YAAAFTSURBVHja7dfRToMwEAVAhYpY//8nF8TEnS6mS9uY9GZfXNoHLmS3S6pWq1arVatVq1WrVavV/6vWGidrFpXvK7V6m6zZV76v1BptsuZe+b5S67PJmkvl+0pt0SZrHpXvK7V5m6x5Vr6v1B7bZK2j8n2l9twmawOV7yu19m2yNlD5vlIbtcnai8r3ldqkTdZeqXxfqS3ZZG2t8n2ltmqTtbXK95Xauk3W3irfV2rrNll7q3xfqe3aZO2v8|"; // (Simplified for code brevity)
 
-    function toggleMenu() {
-        const m = document.getElementById('menu-anexos');
+    function toggleConfig() {
+        const m = document.getElementById('menu-config');
         m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
     }
 
+    // Função para limpar Nick (remove acentos, espaços e caracteres especiais)
+    function limparNick(str) {
+        return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "");
+    }
+
     function entrar() {
-        nickAtual = document.getElementById('nick').value.trim();
+        let rawNick = document.getElementById('nick').value.trim();
+        nickAtual = limparNick(rawNick);
         salaAtual = document.getElementById('sala').value.trim().toLowerCase();
-        if (!nickAtual || !salaAtual) return;
+        
+        if (!nickAtual || !salaAtual) return alert("Nick ou Sala inválidos");
+        
         entrarTime = Date.now();
         db.ref(`salas/${salaAtual}/usuarios/${nickAtual}`).set(true);
+        db.ref(`salas/${salaAtual}/usuarios/${nickAtual}`).onDisconnect().remove();
+        
         document.getElementById('login').style.display = "none";
         document.getElementById('chat').style.display = "flex";
         document.getElementById('nomeSala').innerText = salaAtual;
-        iniciarLógica();
+        iniciarLogica();
     }
 
-    function iniciarLógica() {
-        db.ref(`salas/${salaAtual}/usuarios`).on("value", s => document.getElementById('contagem').innerText = s.numChildren());
-        
-        db.ref(`salas/${salaAtual}/mensagens`).orderByChild("timestamp").startAt(entrarTime).on("child_added", s => {
-            renderizarMensagem(s.val(), s.key);
+    function iniciarLogica() {
+        db.ref(`salas/${salaAtual}/usuarios`).on("value", s => {
+            totalUsuarios = s.numChildren();
+            document.getElementById('contagem').innerText = totalUsuarios + " online";
         });
 
-        db.ref(`salas/${salaAtual}/mensagens`).on("child_changed", s => {
-            const el = document.getElementById(`cont-${s.key}`);
-            if (el && s.val().expirado) {
-                el.innerHTML = `<img src="${imgExpirado}" class="expirado-img"><br><small style="color:#94a3b8; display:block; text-align:center;">Arquivo Expirado</small>`;
+        db.ref(`salas/${salaAtual}/mensagens`).orderByChild("timestamp").startAt(entrarTime).on("child_added", s => {
+            const m = s.val();
+            renderizarMensagem(m, s.key);
+            
+            // Lógica de Notificação (Som e Aba)
+            if (m.nick !== nickAtual) {
+                if (document.getElementById('chkSom').checked) notifySound.play();
+                
+                // Pisca se houver exatamente 2 pessoas e o alerta estiver ativo
+                if (totalUsuarios === 2 && document.getElementById('chkAlerta').checked) {
+                    iniciarAlertaAba();
+                }
             }
         });
+
+        // Para de piscar quando o usuário foca na janela
+        window.onfocus = () => {
+            clearInterval(blinkInterval);
+            document.title = originalTitle;
+            blinkInterval = null;
+        };
+
+        db.ref(`salas/${salaAtual}/mensagens`).on("child_changed", s => {
+            if (s.val().expirado) document.getElementById(`cont-${s.key}`).innerHTML = `<small style="color:#94a3b8">Arquivo Expirado</small>`;
+        });
+    }
+
+    function iniciarAlertaAba() {
+        if (blinkInterval) return;
+        blinkInterval = setInterval(() => {
+            document.title = document.title === originalTitle ? "🟠 NOVA MENSAGEM" : originalTitle;
+        }, 1000);
     }
 
     function renderizarMensagem(m, key) {
         const isMinha = m.nick === nickAtual;
         const div = document.createElement("div");
         div.className = `msg ${isMinha ? 'msg-in' : 'msg-out'}`;
-        div.innerHTML = `<div style="font-size:10px; font-weight:800; margin-bottom:4px; opacity:0.8;">${m.nick}</div><div id="cont-${key}"></div>`;
-        document.getElementById('mensagens').appendChild(div);
         
-        const cont = document.getElementById(`cont-${key}`);
-
-        if (m.expirado) {
-            cont.innerHTML = `<img src="${imgExpirado}" class="expirado-img"><br><small style="color:#94a3b8; display:block; text-align:center;">Arquivo Expirado</small>`;
-        } else if (m.tipo === "foto") {
-            cont.innerHTML = `<img src="${m.url}"><span class="timer-tag">Alguns segundos restantes...</span>`;
-            if (isMinha) agendarExpiracao(key);
-        } else if (m.tipo === "arquivo") {
-            cont.innerHTML = `<div style="background:rgba(0,0,0,0.05); padding:10px; border-radius:10px; border:1px dashed rgba(0,0,0,0.1);">📄 ${m.nome}</div><span class="timer-tag">Download disponível por 60s</span>`;
-            if (isMinha) agendarExpiracao(key);
-        } else {
-            cont.innerText = m.texto;
+        // Formata menção @nick
+        let textoProcessado = m.texto || "";
+        if (textoProcessado.includes('@')) {
+            textoProcessado = textoProcessado.replace(/@(\w+)/g, '<span class="mention">@$1</span>');
         }
 
-        const box = document.getElementById('mensagens');
-        box.scrollTop = box.scrollHeight;
+        let html = `<div style="font-size:10px; font-weight:800; margin-bottom:4px;">${m.nick}</div><div id="cont-${key}">`;
+        
+        if (m.expirado) html += `<small style="color:#94a3b8">Arquivo Expirado</small>`;
+        else if (m.tipo === "foto") {
+            html += `<img src="${m.url}"><span class="timer-tag">Some em 60s</span>`;
+            if (isMinha) agendarExpiracao(key);
+        } else html += textoProcessado;
+
+        div.innerHTML = html + `</div>`;
+        document.getElementById('mensagens').appendChild(div);
+        document.getElementById('mensagens').scrollTop = document.getElementById('mensagens').scrollHeight;
     }
 
     function agendarExpiracao(key) {
-        setTimeout(() => {
-            db.ref(`salas/${salaAtual}/mensagens/${key}`).update({
-                expirado: true,
-                url: null,
-                data: null
-            });
-        }, 60000);
+        setTimeout(() => db.ref(`salas/${salaAtual}/mensagens/${key}`).update({ expirado: true, url: null }), 60000);
     }
 
     function enviarTexto() {
@@ -191,28 +208,11 @@
 
     function processarFoto(input) {
         const file = input.files[0]; if (!file) return;
-        toggleMenu();
         const reader = new FileReader();
         reader.onload = (e) => {
-            db.ref(`salas/${salaAtual}/mensagens`).push({
-                nick: nickAtual, url: e.target.result, tipo: "foto", timestamp: Date.now(), expirado: false
-            });
+            db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, url: e.target.result, tipo: "foto", timestamp: Date.now(), expirado: false });
         };
         reader.readAsDataURL(file);
-        input.value = "";
-    }
-
-    function enviarArquivo(input) {
-        const file = input.files[0]; if (!file) return;
-        toggleMenu();
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            db.ref(`salas/${salaAtual}/mensagens`).push({
-                nick: nickAtual, data: e.target.result, nome: file.name, tipo: "arquivo", timestamp: Date.now(), expirado: false
-            });
-        };
-        reader.readAsDataURL(file);
-        input.value = "";
     }
 </script>
 </body>
