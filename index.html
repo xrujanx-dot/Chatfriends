@@ -3,165 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ponte Virtual | Chat</title>
+    <title>Ponte Virtual | Live</title>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
     <style>
         :root {
-            --primary: #4f46e5;
-            --bg-body: #f8fafc;
-            --bg-card: #ffffff;
-            --text-main: #1e293b;
-            --msg-out: #e0e7ff;
-            --msg-in: #f1f5f9;
+            --gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --primary: #6366f1;
+            --bg: #0f172a;
+            --glass: rgba(255, 255, 255, 0.98);
         }
 
         body {
-            margin: 0;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: var(--bg-body);
-            display: flex;
-            justify-content: center;
-            height: 100vh;
-            color: var(--text-main);
+            margin: 0; font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg); display: flex; justify-content: center; height: 100vh;
         }
 
-        #app {
-            width: 100%;
-            max-width: 480px;
-            background: var(--bg-card);
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-        }
+        #app { width: 100%; max-width: 450px; background: var(--glass); display: flex; flex-direction: column; position: relative; }
 
-        /* --- Tela de Login --- */
-        #login {
-            padding: 40px 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            justify-content: center;
-            height: 100%;
-        }
+        /* Login */
+        #login { padding: 40px; display: flex; flex-direction: column; gap: 15px; justify-content: center; height: 100%; background: white; }
+        .logo-icon { font-size: 40px; text-align: center; margin-bottom: 10px; }
+        h2 { text-align: center; margin: 0 0 20px 0; }
+        input { width: 100%; padding: 15px; border: 2px solid #f1f5f9; border-radius: 12px; font-size: 16px; box-sizing: border-box; }
+        .main-btn { background: var(--gradient); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 700; cursor: pointer; }
 
-        #login h2 { text-align: center; margin-bottom: 20px; color: var(--primary); }
-
-        input {
-            width: 100%;
-            padding: 14px;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 16px;
-            box-sizing: border-box;
-            transition: border-color 0.2s;
-        }
-
-        input:focus { outline: none; border-color: var(--primary); }
-
-        button {
-            background: var(--primary);
-            color: #fff;
-            border: none;
-            padding: 14px;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-
-        button:active { opacity: 0.9; }
-
-        /* --- Área de Chat --- */
+        /* Chat */
         #chat { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+        #topo { padding: 15px 20px; background: white; border-bottom: 1px solid #f1f5f9; }
+        .info-sala { display: flex; justify-content: space-between; align-items: center; }
+        .online-count { font-size: 12px; color: #10b981; font-weight: 600; }
+        #digitando { font-size: 11px; color: #64748b; height: 15px; margin-top: 4px; }
 
-        #topo {
-            padding: 15px;
-            font-weight: 700;
-            background: #fff;
-            border-bottom: 1px solid #f1f5f9;
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
+        #mensagens { flex: 1; padding: 20px; overflow-y: auto; background: #f8fafc; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 10px 15px; border-radius: 15px; max-width: 80%; font-size: 14px; line-height: 1.4; }
+        .msg-out { align-self: flex-start; background: #e2e8f0; border-bottom-left-radius: 2px; }
+        .msg-in { align-self: flex-end; background: var(--primary); color: white; border-bottom-right-radius: 2px; }
+        .nick { font-weight: 800; font-size: 10px; text-transform: uppercase; margin-bottom: 2px; }
 
-        #topo::before {
-            content: '';
-            width: 10px;
-            height: 10px;
-            background: #10b981;
-            border-radius: 50%;
-        }
-
-        #mensagens {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            background: #fdfdfd;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .msg {
-            background: var(--msg-in);
-            padding: 10px 14px;
-            border-radius: 18px 18px 18px 4px;
-            max-width: 85%;
-            width: fit-content;
-            line-height: 1.4;
-        }
-
-        .minha {
-            margin-left: auto;
-            background: var(--msg-out);
-            border-radius: 18px 18px 4px 18px;
-        }
-
-        .nick { font-weight: 800; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
-
-        #envio {
-            display: flex;
-            gap: 10px;
-            padding: 15px;
-            background: #fff;
-            border-top: 1px solid #f1f5f9;
-        }
-
-        #texto { flex: 1; border-radius: 25px; padding: 12px 20px; background: #f8fafc; border: 1px solid #f1f5f9; }
-
-        .btn-enviar { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; padding: 0; }
+        #envio { padding: 15px; background: white; display: flex; gap: 10px; border-top: 1px solid #f1f5f9; }
+        #texto { background: #f1f5f9; border: none; flex: 1; }
+        .send-btn { background: var(--primary); color: white; width: 45px; height: 45px; border-radius: 50%; border: none; cursor: pointer; }
     </style>
 </head>
-
 <body>
-<div id="app">
 
+<div id="app">
     <div id="login">
+        <div class="logo-icon">🚀</div>
         <h2>Ponte Virtual</h2>
-        <input id="nick" placeholder="Como quer ser chamado?">
-        <input id="sala" placeholder="Código da sala (ex: 123)">
-        <button onclick="entrar()">Entrar no Chat</button>
+        <input id="nick" placeholder="Seu apelido">
+        <input id="sala" placeholder="Código da sala">
+        <button class="main-btn" onclick="entrar()">Entrar agora</button>
     </div>
 
     <div id="chat">
-        <div id="topo">Sala: <span id="nomeSala"></span></div>
+        <div id="topo">
+            <div class="info-sala">
+                <div><b>Sala:</b> <span id="nomeSala"></span></div>
+                <div class="online-count">● <span id="contagem">0</span> online</div>
+            </div>
+            <div id="digitando"></div>
+        </div>
         <div id="mensagens"></div>
-
         <div id="envio">
-            <input id="texto" placeholder="Escreva uma mensagem..." onkeydown="if(event.key==='Enter') enviarTexto()">
-            <button class="btn-enviar" onclick="enviarTexto()">➤</button>
+            <input id="texto" placeholder="Mensagem..." oninput="avisarDigitando()" onkeydown="if(event.key==='Enter') enviarTexto()">
+            <button class="send-btn" onclick="enviarTexto()">➤</button>
         </div>
     </div>
-
 </div>
 
 <script>
-    // Inicialização do Firebase
     firebase.initializeApp({
         apiKey: "AIzaSyCkkkHhydC92yB5N364Ula4-aM2LUlSmG4",
         authDomain: "ponte-virtual-rujan.firebaseapp.com",
@@ -170,69 +84,85 @@
     });
 
     const db = firebase.database();
-    let salaAtual = "", nickAtual = "";
+    let salaAtual, nickAtual, digitandoTimeout;
 
-    // Gera cores únicas para cada usuário baseada no nome
     function corNick(n) {
         let h = 0; for (let c of n) h = c.charCodeAt(0) + ((h << 5) - h);
-        return `hsl(${Math.abs(h % 360)}, 65%, 45%)`;
+        return `hsl(${Math.abs(h % 360)}, 60%, 40%)`;
     }
 
     function entrar() {
         nickAtual = document.getElementById('nick').value.trim();
         salaAtual = document.getElementById('sala').value.trim();
-
-        if (!nickAtual || !salaAtual) return alert("Por favor, preencha seu nick e a sala.");
+        if (!nickAtual || !salaAtual) return;
 
         const userRef = db.ref(`salas/${salaAtual}/usuarios/${nickAtual}`);
-        
         userRef.once("value", s => {
-            if (s.exists()) return alert("Este nick já está em uso nesta sala.");
+            if (s.exists()) return alert("Nick em uso!");
             
-            // Gerencia presença: Remove o nick ao desconectar
             userRef.set(true);
             userRef.onDisconnect().remove();
-
+            
             document.getElementById('login').style.display = "none";
             document.getElementById('chat').style.display = "flex";
             document.getElementById('nomeSala').innerText = salaAtual;
 
-            ouvirMensagens();
+            iniciarLógica();
         });
     }
 
-    function ouvirMensagens() {
-        const msgRef = db.ref(`salas/${salaAtual}/mensagens`);
-        
-        msgRef.on("child_added", s => {
-            const m = s.val();
-            const div = document.createElement("div");
-            const isMinha = m.nick === nickAtual;
-            
-            div.className = `msg ${isMinha ? 'minha' : ''}`;
-            div.innerHTML = `
-                <div class="nick" style="color:${corNick(m.nick)}">${m.nick}</div>
-                <div>${m.texto}</div>
-            `;
-
-            const container = document.getElementById('mensagens');
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
+    function iniciarLógica() {
+        // 1. Contador de Online
+        db.ref(`salas/${salaAtual}/usuarios`).on("value", s => {
+            document.getElementById('contagem').innerText = s.numChildren();
         });
+
+        // 2. Ouvir Mensagens
+        db.ref(`salas/${salaAtual}/mensagens`).on("child_added", s => {
+            const m = s.val();
+            const isMinha = m.nick === nickAtual;
+            const div = document.createElement("div");
+            div.className = `msg ${isMinha ? 'msg-in' : 'msg-out'}`;
+            div.innerHTML = `<div class="nick" style="color:${isMinha ? '#c7d2fe' : corNick(m.nick)}">${m.nick}</div>${m.texto}`;
+            document.getElementById('mensagens').appendChild(div);
+            document.getElementById('mensagens').scrollTop = document.getElementById('mensagens').scrollHeight;
+            
+            // Atualiza tempo da última atividade
+            db.ref(`salas/${salaAtual}/lastActivity`).set(Date.now());
+        });
+
+        // 3. Alerta de Digitando
+        db.ref(`salas/${salaAtual}/status`).on("value", s => {
+            const status = s.val() || {};
+            const quem = Object.keys(status).filter(u => status[u] === true && u !== nickAtual);
+            document.getElementById('digitando').innerText = quem.length ? `${quem[0]} está digitando...` : "";
+        });
+
+        // 4. Limpeza Automática (5 minutos)
+        setInterval(() => {
+            db.ref(`salas/${salaAtual}/lastActivity`).once("value", s => {
+                const last = s.val();
+                if (last && (Date.now() - last > 300000)) { // 300000ms = 5min
+                    db.ref(`salas/${salaAtual}/mensagens`).remove();
+                    db.ref(`salas/${salaAtual}/lastActivity`).set(Date.now());
+                }
+            });
+        }, 10000);
+    }
+
+    function avisarDigitando() {
+        db.ref(`salas/${salaAtual}/status/${nickAtual}`).set(true);
+        clearTimeout(digitandoTimeout);
+        digitandoTimeout = setTimeout(() => {
+            db.ref(`salas/${salaAtual}/status/${nickAtual}`).remove();
+        }, 2000);
     }
 
     function enviarTexto() {
         const input = document.getElementById('texto');
-        const txt = input.value.trim();
-        
-        if (!txt) return;
-
-        db.ref(`salas/${salaAtual}/mensagens`).push({
-            nick: nickAtual,
-            texto: txt,
-            timestamp: Date.now()
-        });
-        
+        if (!input.value.trim()) return;
+        db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, texto: input.value });
+        db.ref(`salas/${salaAtual}/status/${nickAtual}`).remove();
         input.value = "";
     }
 </script>
