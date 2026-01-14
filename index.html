@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ponte Virtual | Chat</title>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #1e293b;
+            --msg-out: #e0e7ff;
+            --msg-in: #f1f5f9;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-body);
+            display: flex;
+            justify-content: center;
+            height: 100vh;
+            color: var(--text-main);
+        }
+
+        #app {
+            width: 100%;
+            max-width: 480px;
+            background: var(--bg-card);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* --- Tela de Login --- */
+        #login {
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            justify-content: center;
+            height: 100%;
+        }
+
+        #login h2 { text-align: center; margin-bottom: 20px; color: var(--primary); }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        input:focus { outline: none; border-color: var(--primary); }
+
+        button {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        button:active { opacity: 0.9; }
+
+        /* --- Área de Chat --- */
+        #chat { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+
+        #topo {
+            padding: 15px;
+            font-weight: 700;
+            background: #fff;
+            border-bottom: 1px solid #f1f5f9;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        #topo::before {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background: #10b981;
+            border-radius: 50%;
+        }
+
+        #mensagens {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #fdfdfd;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .msg {
+            background: var(--msg-in);
+            padding: 10px 14px;
+            border-radius: 18px 18px 18px 4px;
+            max-width: 85%;
+            width: fit-content;
+            line-height: 1.4;
+        }
+
+        .minha {
+            margin-left: auto;
+            background: var(--msg-out);
+            border-radius: 18px 18px 4px 18px;
+        }
+
+        .nick { font-weight: 800; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        #envio {
+            display: flex;
+            gap: 10px;
+            padding: 15px;
+            background: #fff;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        #texto { flex: 1; border-radius: 25px; padding: 12px 20px; background: #f8fafc; border: 1px solid #f1f5f9; }
+
+        .btn-enviar { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; padding: 0; }
+    </style>
+</head>
+
+<body>
+<div id="app">
+
+    <div id="login">
+        <h2>Ponte Virtual</h2>
+        <input id="nick" placeholder="Como quer ser chamado?">
+        <input id="sala" placeholder="Código da sala (ex: 123)">
+        <button onclick="entrar()">Entrar no Chat</button>
+    </div>
+
+    <div id="chat">
+        <div id="topo">Sala: <span id="nomeSala"></span></div>
+        <div id="mensagens"></div>
+
+        <div id="envio">
+            <input id="texto" placeholder="Escreva uma mensagem..." onkeydown="if(event.key==='Enter') enviarTexto()">
+            <button class="btn-enviar" onclick="enviarTexto()">➤</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // Inicialização do Firebase
+    firebase.initializeApp({
+        apiKey: "AIzaSyCkkkHhydC92yB5N364Ula4-aM2LUlSmG4",
+        authDomain: "ponte-virtual-rujan.firebaseapp.com",
+        databaseURL: "https://ponte-virtual-rujan-default-rtdb.firebaseio.com",
+        projectId: "ponte-virtual-rujan"
+    });
+
+    const db = firebase.database();
+    let salaAtual = "", nickAtual = "";
+
+    // Gera cores únicas para cada usuário baseada no nome
+    function corNick(n) {
+        let h = 0; for (let c of n) h = c.charCodeAt(0) + ((h << 5) - h);
+        return `hsl(${Math.abs(h % 360)}, 65%, 45%)`;
+    }
+
+    function entrar() {
+        nickAtual = document.getElementById('nick').value.trim();
+        salaAtual = document.getElementById('sala').value.trim();
+
+        if (!nickAtual || !salaAtual) return alert("Por favor, preencha seu nick e a sala.");
+
+        const userRef = db.ref(`salas/${salaAtual}/usuarios/${nickAtual}`);
+        
+        userRef.once("value", s => {
+            if (s.exists()) return alert("Este nick já está em uso nesta sala.");
+            
+            // Gerencia presença: Remove o nick ao desconectar
+            userRef.set(true);
+            userRef.onDisconnect().remove();
+
+            document.getElementById('login').style.display = "none";
+            document.getElementById('chat').style.display = "flex";
+            document.getElementById('nomeSala').innerText = salaAtual;
+
+            ouvirMensagens();
+        });
+    }
+
+    function ouvirMensagens() {
+        const msgRef = db.ref(`salas/${salaAtual}/mensagens`);
+        
+        msgRef.on("child_added", s => {
+            const m = s.val();
+            const div = document.createElement("div");
+            const isMinha = m.nick === nickAtual;
+            
+            div.className = `msg ${isMinha ? 'minha' : ''}`;
+            div.innerHTML = `
+                <div class="nick" style="color:${corNick(m.nick)}">${m.nick}</div>
+                <div>${m.texto}</div>
+            `;
+
+            const container = document.getElementById('mensagens');
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        });
+    }
+
+    function enviarTexto() {
+        const input = document.getElementById('texto');
+        const txt = input.value.trim();
+        
+        if (!txt) return;
+
+        db.ref(`salas/${salaAtual}/mensagens`).push({
+            nick: nickAtual,
+            texto: txt,
+            timestamp: Date.now()
+        });
+        
+        input.value = "";
+    }
+</script>
+</body>
+</html>
