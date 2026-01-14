@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ponte Virtual | Pro v3</title>
+    <title>Ponte Virtual | Pro v4</title>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
@@ -20,35 +20,41 @@
         #app { width: 100%; max-width: 450px; background: var(--glass); display: flex; flex-direction: column; position: relative; }
 
         /* Login */
-        #login { padding: 40px; display: flex; flex-direction: column; gap: 15px; justify-content: center; height: 100%; background: white; z-index: 10; }
+        #login { padding: 40px; display: flex; flex-direction: column; gap: 15px; justify-content: center; height: 100%; background: white; z-index: 20; }
         input { width: 100%; padding: 15px; border: 2px solid #f1f5f9; border-radius: 12px; font-size: 16px; box-sizing: border-box; outline: none; }
         .main-btn { background: var(--gradient); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 700; cursor: pointer; }
 
         /* Chat */
         #chat { display: none; flex: 1; flex-direction: column; overflow: hidden; }
-        #topo { padding: 15px 20px; background: white; border-bottom: 1px solid #f1f5f9; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        #topo { padding: 15px 20px; background: white; border-bottom: 1px solid #f1f5f9; z-index: 10; }
         .info-sala { display: flex; justify-content: space-between; align-items: center; }
         .online-count { font-size: 12px; color: #10b981; font-weight: 600; }
         #digitando { font-size: 11px; color: #64748b; height: 15px; margin-top: 4px; }
 
         #mensagens { flex: 1; padding: 20px; overflow-y: auto; background: #f8fafc; display: flex; flex-direction: column; gap: 12px; }
-        .msg { padding: 10px 15px; border-radius: 18px; max-width: 80%; font-size: 14px; line-height: 1.4; word-wrap: break-word; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        
+        .msg { padding: 10px 15px; border-radius: 18px; max-width: 80%; font-size: 14px; line-height: 1.4; word-wrap: break-word; position: relative; }
         .msg-out { align-self: flex-start; background: #ffffff; border: 1px solid #e2e8f0; }
         .msg-in { align-self: flex-end; background: var(--primary); color: white; }
         
-        .msg img { max-width: 100%; border-radius: 12px; margin-top: 5px; display: block; }
+        .msg img { max-width: 100%; border-radius: 12px; margin-top: 5px; display: block; pointer-events: auto; }
         .file-link { display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.05); padding: 10px; border-radius: 10px; text-decoration: none; color: inherit; margin-top: 5px; font-size: 12px; }
         .msg-in .file-link { background: rgba(255,255,255,0.2); color: white; }
-
         .nick { font-weight: 800; font-size: 10px; text-transform: uppercase; margin-bottom: 3px; }
 
-        #envio { padding: 15px; background: white; display: flex; gap: 10px; border-top: 1px solid #f1f5f9; align-items: center; }
-        #texto { background: #f1f5f9; border: none; flex: 1; padding: 12px; border-radius: 25px; outline: none; }
-        .btn-icon { background: #f1f5f9; color: #64748b; width: 42px; height: 42px; border-radius: 50%; border: none; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; }
+        /* Menu de Anexos */
+        #envio { padding: 15px; background: white; display: flex; gap: 10px; border-top: 1px solid #f1f5f9; align-items: center; position: relative; }
+        #menu-anexos { 
+            position: absolute; bottom: 80px; left: 15px; background: white; 
+            border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); 
+            display: none; flex-direction: column; overflow: hidden; border: 1px solid #f1f5f9;
+        }
+        .opt-anexo { padding: 12px 20px; border: none; background: white; display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; font-weight: 600; color: #475569; }
+        .opt-anexo:hover { background: #f8fafc; color: var(--primary); }
+        
+        #texto { background: #f1f5f9; border: none; flex: 1; padding: 12px 18px; border-radius: 25px; outline: none; }
+        .btn-plus { background: #f1f5f9; color: #64748b; width: 42px; height: 42px; border-radius: 50%; border: none; cursor: pointer; font-size: 22px; font-weight: bold; transition: 0.3s; }
+        .btn-plus.open { transform: rotate(45deg); color: #ef4444; }
         .send-btn { background: var(--primary); color: white; width: 42px; height: 42px; border-radius: 50%; border: none; cursor: pointer; }
-        #file-input { display: none; }
     </style>
 </head>
 <body>
@@ -56,7 +62,7 @@
 <div id="app">
     <div id="login">
         <h2 style="text-align: center;">Ponte Virtual</h2>
-        <input id="nick" placeholder="Seu apelido">
+        <input id="nick" placeholder="Seu apelido" maxlength="12">
         <input id="sala" placeholder="Código da sala">
         <button class="main-btn" onclick="entrar()">Entrar no Chat</button>
     </div>
@@ -65,17 +71,26 @@
         <div id="topo">
             <div class="info-sala">
                 <div><b>Sala:</b> <span id="nomeSala"></span></div>
-                <div style="display: flex; gap: 12px; align-items: center;">
+                <div style="display: flex; gap: 10px; align-items: center;">
                     <span class="online-count">● <span id="contagem">0</span></span>
                     <button onclick="limparTelaLocal()" style="background: #fee2e2; color: #ef4444; border: none; padding: 6px 10px; border-radius: 8px; font-size: 10px; font-weight: 800; cursor: pointer;">LIMPAR</button>
                 </div>
             </div>
             <div id="digitando"></div>
         </div>
+
         <div id="mensagens"></div>
+
+        <div id="menu-anexos">
+            <button class="opt-anexo" onclick="document.getElementById('img-input').click()">🖼️ Enviar Foto</button>
+            <button class="opt-anexo" onclick="document.getElementById('file-input').click()">📄 Enviar Arquivo</button>
+        </div>
+
         <div id="envio">
-            <input type="file" id="file-input" onchange="enviarArquivo(this)">
-            <button class="btn-icon" id="btn-arq" onclick="document.getElementById('file-input').click()">📎</button>
+            <input type="file" id="img-input" accept="image/*" style="display:none" onchange="processarFoto(this)">
+            <input type="file" id="file-input" style="display:none" onchange="enviarArquivo(this)">
+            
+            <button class="btn-plus" id="btn-toggle" onclick="toggleMenu()">+</button>
             <input id="texto" placeholder="Mensagem..." oninput="avisarDigitando()" onkeydown="if(event.key==='Enter') enviarTexto()">
             <button class="send-btn" onclick="enviarTexto()">➤</button>
         </div>
@@ -83,7 +98,6 @@
 </div>
 
 <script>
-    // Suas configurações do Firebase
     firebase.initializeApp({
         apiKey: "AIzaSyCkkkHhydC92yB5N364Ula4-aM2LUlSmG4",
         authDomain: "ponte-virtual-rujan.firebaseapp.com",
@@ -99,15 +113,22 @@
         return `hsl(${Math.abs(h % 360)}, 65%, 40%)`;
     }
 
+    function toggleMenu() {
+        const menu = document.getElementById('menu-anexos');
+        const btn = document.getElementById('btn-toggle');
+        const isOpen = menu.style.display === 'flex';
+        menu.style.display = isOpen ? 'none' : 'flex';
+        btn.classList.toggle('open', !isOpen);
+    }
+
     function entrar() {
         nickAtual = document.getElementById('nick').value.trim();
         salaAtual = document.getElementById('sala').value.trim();
         if (!nickAtual || !salaAtual) return;
-        const userRef = db.ref(`salas/${salaAtual}/usuarios/${nickAtual}`);
-        userRef.once("value", s => {
+        db.ref(`salas/${salaAtual}/usuarios/${nickAtual}`).once("value", s => {
             if (s.exists()) return alert("Nick em uso!");
-            userRef.set(true);
-            userRef.onDisconnect().remove();
+            db.ref(`salas/${salaAtual}/usuarios/${nickAtual}`).set(true);
+            db.ref(`salas/${salaAtual}/usuarios/${nickAtual}`).onDisconnect().remove();
             document.getElementById('login').style.display = "none";
             document.getElementById('chat').style.display = "flex";
             document.getElementById('nomeSala').innerText = salaAtual;
@@ -123,6 +144,11 @@
             const quem = Object.keys(status).filter(u => status[u] === true && u !== nickAtual);
             document.getElementById('digitando').innerText = quem.length ? `${quem[0]} está digitando...` : "";
         });
+        setInterval(() => {
+            db.ref(`salas/${salaAtual}/lastActivity`).once("value", s => {
+                if (s.val() && (Date.now() - s.val() > 300000)) db.ref(`salas/${salaAtual}/mensagens`).remove();
+            });
+        }, 30000);
     }
 
     function renderizarMensagem(m) {
@@ -131,12 +157,10 @@
         div.className = `msg ${isMinha ? 'msg-in' : 'msg-out'}`;
         let conteudo = `<div class="nick" style="color:${isMinha ? '#c7d2fe' : corNick(m.nick)}">${m.nick}</div>`;
         
-        if (m.tipo === "arquivo") {
-            if (m.isImg) {
-                conteudo += `<img src="${m.data}" onclick="window.open(this.src)">`;
-            } else {
-                conteudo += `<a href="${m.data}" download="${m.nome}" class="file-link">📄 <div><b>${m.nome}</b><br><small>Clique para baixar</small></div></a>`;
-            }
+        if (m.tipo === "foto") {
+            conteudo += `<img src="${m.url}">`;
+        } else if (m.tipo === "arquivo") {
+            conteudo += `<a href="${m.data}" download="${m.nome}" class="file-link">📄 <div><b>${m.nome}</b><br><small>Download</small></div></a>`;
         } else {
             conteudo += `<div>${m.texto}</div>`;
         }
@@ -146,28 +170,45 @@
         document.getElementById('mensagens').scrollTop = document.getElementById('mensagens').scrollHeight;
     }
 
+    // --- PROCESSAMENTO DE FOTO (COM COMPRESSÃO) ---
+    function processarFoto(input) {
+        const file = input.files[0];
+        if (!file) return;
+        toggleMenu();
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = function(e) {
+            const img = new Image();
+            img.src = e.target.result;
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 1200;
+                let width = img.width, height = img.height;
+                if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                canvas.width = width; canvas.height = height;
+                canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+                db.ref(`salas/${salaAtual}/mensagens`).push({
+                    nick: nickAtual, url: canvas.toDataURL('image/jpeg', 0.7), tipo: "foto"
+                });
+            };
+        };
+        input.value = "";
+    }
+
+    // --- ENVIO DE ARQUIVO (ATÉ 2MB) ---
     function enviarArquivo(input) {
         const file = input.files[0];
         if (!file) return;
-        if (file.size > 2 * 1024 * 1024) return alert("O limite é 2MB para manter a velocidade do chat.");
-
-        const btn = document.getElementById('btn-arq');
-        btn.innerText = "⏳";
-
+        if (file.size > 2 * 1024 * 1024) return alert("Arquivo muito grande (Máx 2MB)");
+        toggleMenu();
         const reader = new FileReader();
         reader.onload = function(e) {
-            const isImg = file.type.startsWith("image/");
             db.ref(`salas/${salaAtual}/mensagens`).push({
-                nick: nickAtual,
-                tipo: "arquivo",
-                nome: file.name,
-                data: e.target.result,
-                isImg: isImg
+                nick: nickAtual, tipo: "arquivo", nome: file.name, data: e.target.result
             });
-            btn.innerText = "📎";
-            input.value = "";
         };
         reader.readAsDataURL(file);
+        input.value = "";
     }
 
     function enviarTexto() {
@@ -179,7 +220,6 @@
     }
 
     function limparTelaLocal() { document.getElementById('mensagens').innerHTML = ""; }
-    
     function avisarDigitando() {
         db.ref(`salas/${salaAtual}/status/${nickAtual}`).set(true);
         clearTimeout(digitandoTimeout);
