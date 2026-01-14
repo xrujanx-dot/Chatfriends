@@ -2,8 +2,8 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Swiftly | Ultra Privado</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>Swiftly</title>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
@@ -15,38 +15,49 @@
             --bg: #0f172a;
         }
 
-        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); display: flex; justify-content: center; height: 100vh; overflow: hidden; }
-        #app { width: 100%; max-width: 450px; background: white; display: flex; flex-direction: column; position: relative; }
+        /* Previne scroll elástico no iOS e garante altura total */
+        html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: var(--bg); position: fixed; width: 100%; }
+        
+        #app { width: 100%; max-width: 500px; height: 100%; background: white; display: flex; flex-direction: column; margin: 0 auto; position: relative; }
 
         /* Login */
-        #login { padding: 40px; display: flex; flex-direction: column; gap: 15px; justify-content: center; height: 100%; z-index: 50; position: absolute; width: 100%; box-sizing: border-box; background: white; }
-        .raio-icon { background: var(--gradient); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; font-size: 40px; color: white; box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3); }
+        #login { padding: 40px; display: flex; flex-direction: column; gap: 15px; justify-content: center; height: 100%; z-index: 100; position: absolute; width: 100%; box-sizing: border-box; background: white; }
+        .raio-icon { background: var(--gradient); width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 35px; color: white; }
 
-        /* Chat */
-        #chat { display: none; flex: 1; flex-direction: column; overflow: hidden; }
-        #topo { padding: 15px 20px; background: white; border-bottom: 1px solid #f1f5f9; position: relative; }
+        /* Topo com área de segurança para celular */
+        #topo { padding: 25px 20px 15px 20px; background: white; border-bottom: 1px solid #f1f5f9; position: relative; }
         .info-sala { display: flex; justify-content: space-between; align-items: center; }
+        .sala-label { font-size: 14px; font-weight: 500; }
+        #nomeSala { color: var(--primary); font-weight: 800; }
         
-        /* Configurações */
-        .btn-config { background: none; border: none; font-size: 20px; cursor: pointer; color: #64748b; }
-        #menu-config { position: absolute; top: 60px; right: 20px; background: white; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 10px; padding: 15px; display: none; flex-direction: column; gap: 10px; z-index: 100; border: 1px solid #eee; }
-        .config-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #334155; cursor: pointer; }
+        /* Botão Configuração */
+        .btn-config { background: #f8fafc; border: none; font-size: 18px; cursor: pointer; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        #menu-config { position: absolute; top: 75px; right: 20px; background: white; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border-radius: 12px; padding: 15px; display: none; flex-direction: column; gap: 12px; z-index: 110; border: 1px solid #eee; min-width: 150px; }
+        .config-item { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #334155; }
 
-        #mensagens { flex: 1; padding: 20px; overflow-y: auto; background: #f8fafc; display: flex; flex-direction: column; gap: 12px; }
-        .msg { padding: 10px 15px; border-radius: 18px; max-width: 80%; font-size: 14px; line-height: 1.4; position: relative; animation: fadeIn 0.3s ease; }
-        .msg-out { align-self: flex-start; background: #ffffff; border: 1px solid #e2e8f0; }
-        .msg-in { align-self: flex-end; background: var(--primary); color: white; }
+        /* Mensagens */
+        #mensagens { flex: 1; padding: 15px; overflow-y: auto; background: #f1f5f9; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 10px 14px; border-radius: 16px; max-width: 85%; font-size: 15px; line-height: 1.4; position: relative; animation: fadeIn 0.2s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* Destaque da marcação @ */
-        .mention { background: #ffeb3b; color: #000; padding: 2px 5px; border-radius: 4px; font-weight: bold; }
+        .msg-out { align-self: flex-start; background: white; color: #1e293b; border-bottom-left-radius: 4px; }
+        .msg-in { align-self: flex-end; background: var(--primary); color: white; border-bottom-right-radius: 4px; }
+        .mention { background: #fbbf24; color: #000; padding: 0 4px; border-radius: 4px; font-weight: 700; }
         
-        .expirado-img { width: 100px; opacity: 0.5; filter: grayscale(1); display: block; margin: 0 auto; }
-        .timer-tag { font-size: 9px; opacity: 0.6; display: block; margin-top: 4px; text-align: right; }
+        /* Imagens e Arquivos */
+        .msg img { max-width: 100%; border-radius: 10px; margin-top: 5px; }
+        .expirado-img { width: 80px; opacity: 0.4; filter: grayscale(1); margin: 5px auto; display: block; }
+        .timer-tag { font-size: 9px; opacity: 0.6; display: block; margin-top: 5px; text-align: right; }
 
-        #envio { padding: 15px; background: white; display: flex; gap: 10px; border-top: 1px solid #f1f5f9; align-items: center; }
-        input { width: 100%; padding: 12px; border: 2px solid #f1f5f9; border-radius: 12px; outline: none; }
-        .btn-plus, .send-btn { background: #f1f5f9; width: 42px; height: 42px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        /* Envio Otimizado */
+        #envio { padding: 10px 15px; padding-bottom: 25px; background: white; display: flex; gap: 8px; align-items: center; }
+        /* Font-size 16px evita o zoom no input do celular */
+        #texto { background: #f8fafc; border: 1px solid #e2e8f0; flex: 1; padding: 12px 15px; border-radius: 25px; outline: none; font-size: 16px; -webkit-appearance: none; }
+        .btn-plus, .send-btn { width: 45px; height: 45px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+        .btn-plus { background: #f1f5f9; color: #64748b; }
         .send-btn { background: var(--primary); color: white; }
+
+        input#nick, input#sala { font-size: 16px; } /* Garante login sem zoom também */
     </style>
 </head>
 <body>
@@ -54,25 +65,26 @@
 <div id="app">
     <div id="login">
         <div class="raio-icon">⚡</div>
-        <h2 style="text-align: center; margin: 0;">Swiftly</h2>
-        <input id="nick" placeholder="Seu apelido (sem espaços)" maxlength="12">
+        <h2 style="text-align: center; margin: 0; font-weight: 900; letter-spacing: -1px;">Swiftly</h2>
+        <p style="text-align: center; color: #64748b; font-size: 14px; margin-bottom: 10px;">Chat Efêmero</p>
+        <input id="nick" placeholder="Seu apelido" maxlength="12">
         <input id="sala" placeholder="Código da sala">
-        <button class="main-btn" style="width:100%; background:var(--gradient); color:white; border:none; padding:15px; border-radius:12px; font-weight:700; cursor:pointer;" onclick="entrar()">Entrar</button>
+        <button class="main-btn" style="width:100%; background:var(--gradient); color:white; border:none; padding:16px; border-radius:12px; font-weight:700; font-size:16px;" onclick="entrar()">Entrar</button>
     </div>
 
     <div id="chat">
         <div id="topo">
             <div class="info-sala">
-                <div><b>Sala:</b> <span id="nomeSala" style="color:var(--primary)"></span></div>
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <span id="contagem" style="font-size:12px; color:#10b981; font-weight:600;">0</span>
+                <div class="sala-label">Sala <span id="nomeSala"></span></div>
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <span id="contagem" style="font-size:12px; color:#10b981; font-weight:700;">0 online</span>
                     <button class="btn-config" onclick="toggleConfig()">⚙️</button>
                 </div>
             </div>
             
             <div id="menu-config">
-                <label class="config-item"><input type="checkbox" id="chkSom"> Ativar Som 🔊</label>
-                <label class="config-item"><input type="checkbox" id="chkAlerta"> Alerta na Aba 🔔</label>
+                <label class="config-item"><input type="checkbox" id="chkSom"> Ativar Som</label>
+                <label class="config-item"><input type="checkbox" id="chkAlerta"> Alerta na Aba</label>
             </div>
         </div>
 
@@ -81,7 +93,7 @@
         <div id="envio">
             <button class="btn-plus" onclick="document.getElementById('img-input').click()">+</button>
             <input type="file" id="img-input" accept="image/*" style="display:none" onchange="processarFoto(this)">
-            <input id="texto" placeholder="Mensagem... use @nome" onkeydown="if(event.key==='Enter') enviarTexto()">
+            <input id="texto" placeholder="Mensagem..." onkeydown="if(event.key==='Enter') enviarTexto()">
             <button class="send-btn" onclick="enviarTexto()">➤</button>
         </div>
     </div>
@@ -97,19 +109,15 @@
 
     const db = firebase.database();
     let salaAtual, nickAtual, entrarTime;
-    let originalTitle = document.title;
     let blinkInterval = null;
     let totalUsuarios = 0;
-
     const notifySound = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
-    const imgExpirado = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAABkCAMAAAB9v93fAAAAMFBMVEUAAAD7+vv///8vLy8mJiYWFhYMDAwHBwcFBQUDAwMCAgIBAQEAAAD///8vLy8mJiYWFhY9MUK9AAAAEHRSTlMAECBAUGBwgI+fr7/P3+///1Y8X3YAAAFTSURBVHja7dfRToMwEAVAhYpY//8nF8TEnS6mS9uY9GZfXNoHLmS3S6pWq1arVatVq1WrVavV/6vWGidrFpXvK7V6m6zZV76v1BptsuZe+b5S67PJmkvl+0pt0SZrHpXvK7V5m6x5Vr6v1B7bZK2j8n2l9twmawOV7yu19m2yNlD5vlIbtcnai8r3ldqkTdZeqXxfqS3ZZG2t8n2ltmqTtbXK95Xauk3W3irfV2rrNll7q3xfqe3aZO2v8|"; // (Simplified for code brevity)
 
     function toggleConfig() {
         const m = document.getElementById('menu-config');
         m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
     }
 
-    // Função para limpar Nick (remove acentos, espaços e caracteres especiais)
     function limparNick(str) {
         return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "");
     }
@@ -118,8 +126,7 @@
         let rawNick = document.getElementById('nick').value.trim();
         nickAtual = limparNick(rawNick);
         salaAtual = document.getElementById('sala').value.trim().toLowerCase();
-        
-        if (!nickAtual || !salaAtual) return alert("Nick ou Sala inválidos");
+        if (!nickAtual || !salaAtual) return;
         
         entrarTime = Date.now();
         db.ref(`salas/${salaAtual}/usuarios/${nickAtual}`).set(true);
@@ -141,34 +148,33 @@
             const m = s.val();
             renderizarMensagem(m, s.key);
             
-            // Lógica de Notificação (Som e Aba)
             if (m.nick !== nickAtual) {
-                if (document.getElementById('chkSom').checked) notifySound.play();
-                
-                // Pisca se houver exatamente 2 pessoas e o alerta estiver ativo
+                if (document.getElementById('chkSom').checked) notifySound.play().catch(()=>{});
                 if (totalUsuarios === 2 && document.getElementById('chkAlerta').checked) {
                     iniciarAlertaAba();
                 }
             }
         });
 
-        // Para de piscar quando o usuário foca na janela
         window.onfocus = () => {
             clearInterval(blinkInterval);
-            document.title = originalTitle;
+            document.title = "Swiftly";
             blinkInterval = null;
         };
 
         db.ref(`salas/${salaAtual}/mensagens`).on("child_changed", s => {
-            if (s.val().expirado) document.getElementById(`cont-${s.key}`).innerHTML = `<small style="color:#94a3b8">Arquivo Expirado</small>`;
+            if (s.val().expirado) {
+                const cont = document.getElementById(`cont-${s.key}`);
+                if(cont) cont.innerHTML = `<small style="color:#94a3b8">Arquivo expirado</small>`;
+            }
         });
     }
 
     function iniciarAlertaAba() {
         if (blinkInterval) return;
         blinkInterval = setInterval(() => {
-            document.title = document.title === originalTitle ? "🟠 NOVA MENSAGEM" : originalTitle;
-        }, 1000);
+            document.title = document.title === "Swiftly" ? "🟠 MENSAGEM" : "Swiftly";
+        }, 800);
     }
 
     function renderizarMensagem(m, key) {
@@ -176,27 +182,23 @@
         const div = document.createElement("div");
         div.className = `msg ${isMinha ? 'msg-in' : 'msg-out'}`;
         
-        // Formata menção @nick
         let textoProcessado = m.texto || "";
-        if (textoProcessado.includes('@')) {
-            textoProcessado = textoProcessado.replace(/@(\w+)/g, '<span class="mention">@$1</span>');
+        textoProcessado = textoProcessado.replace(/@(\w+)/g, '<span class="mention">@$1</span>');
+
+        let html = `<div style="font-size:10px; font-weight:800; margin-bottom:3px; opacity:0.8;">${m.nick}</div><div id="cont-${key}">`;
+        
+        if (m.expirado) html += `<small style="color:#94a3b8">Arquivo expirado</small>`;
+        else if (m.tipo === "foto") {
+            html += `<img src="${m.url}"><span class="timer-tag">Expirando...</span>`;
+            if (isMinha) setTimeout(() => db.ref(`salas/${salaAtual}/mensagens/${key}`).update({ expirado: true, url: null }), 60000);
+        } else {
+            html += textoProcessado;
         }
 
-        let html = `<div style="font-size:10px; font-weight:800; margin-bottom:4px;">${m.nick}</div><div id="cont-${key}">`;
-        
-        if (m.expirado) html += `<small style="color:#94a3b8">Arquivo Expirado</small>`;
-        else if (m.tipo === "foto") {
-            html += `<img src="${m.url}"><span class="timer-tag">Some em 60s</span>`;
-            if (isMinha) agendarExpiracao(key);
-        } else html += textoProcessado;
-
         div.innerHTML = html + `</div>`;
-        document.getElementById('mensagens').appendChild(div);
-        document.getElementById('mensagens').scrollTop = document.getElementById('mensagens').scrollHeight;
-    }
-
-    function agendarExpiracao(key) {
-        setTimeout(() => db.ref(`salas/${salaAtual}/mensagens/${key}`).update({ expirado: true, url: null }), 60000);
+        const box = document.getElementById('mensagens');
+        box.appendChild(div);
+        box.scrollTop = box.scrollHeight;
     }
 
     function enviarTexto() {
