@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ponte Virtual | Live</title>
+    <title>Ponte Virtual | Pro</title>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
@@ -16,17 +16,11 @@
             --glass: rgba(255, 255, 255, 0.98);
         }
 
-        body {
-            margin: 0; font-family: 'Inter', system-ui, sans-serif;
-            background: var(--bg); display: flex; justify-content: center; height: 100vh;
-        }
-
+        body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background: var(--bg); display: flex; justify-content: center; height: 100vh; }
         #app { width: 100%; max-width: 450px; background: var(--glass); display: flex; flex-direction: column; position: relative; }
 
         /* Login */
         #login { padding: 40px; display: flex; flex-direction: column; gap: 15px; justify-content: center; height: 100%; background: white; }
-        .logo-icon { font-size: 40px; text-align: center; margin-bottom: 10px; }
-        h2 { text-align: center; margin: 0 0 20px 0; }
         input { width: 100%; padding: 15px; border: 2px solid #f1f5f9; border-radius: 12px; font-size: 16px; box-sizing: border-box; }
         .main-btn { background: var(--gradient); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 700; cursor: pointer; }
 
@@ -37,23 +31,25 @@
         .online-count { font-size: 12px; color: #10b981; font-weight: 600; }
         #digitando { font-size: 11px; color: #64748b; height: 15px; margin-top: 4px; }
 
-        #mensagens { flex: 1; padding: 20px; overflow-y: auto; background: #f8fafc; display: flex; flex-direction: column; gap: 10px; }
-        .msg { padding: 10px 15px; border-radius: 15px; max-width: 80%; font-size: 14px; line-height: 1.4; }
+        #mensagens { flex: 1; padding: 20px; overflow-y: auto; background: #f8fafc; display: flex; flex-direction: column; gap: 12px; }
+        .msg { padding: 10px 15px; border-radius: 15px; max-width: 80%; font-size: 14px; line-height: 1.4; word-wrap: break-word; }
         .msg-out { align-self: flex-start; background: #e2e8f0; border-bottom-left-radius: 2px; }
         .msg-in { align-self: flex-end; background: var(--primary); color: white; border-bottom-right-radius: 2px; }
+        .msg img { max-width: 100%; border-radius: 10px; margin-top: 5px; display: block; cursor: pointer; }
         .nick { font-weight: 800; font-size: 10px; text-transform: uppercase; margin-bottom: 2px; }
 
-        #envio { padding: 15px; background: white; display: flex; gap: 10px; border-top: 1px solid #f1f5f9; }
-        #texto { background: #f1f5f9; border: none; flex: 1; }
-        .send-btn { background: var(--primary); color: white; width: 45px; height: 45px; border-radius: 50%; border: none; cursor: pointer; }
+        #envio { padding: 15px; background: white; display: flex; gap: 8px; border-top: 1px solid #f1f5f9; align-items: center; }
+        #texto { background: #f1f5f9; border: none; flex: 1; padding: 12px; border-radius: 20px; }
+        .btn-icon { background: #f1f5f9; color: #64748b; width: 40px; height: 40px; border-radius: 50%; border: none; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+        .send-btn { background: var(--primary); color: white; width: 40px; height: 40px; border-radius: 50%; border: none; cursor: pointer; }
+        #file-input { display: none; }
     </style>
 </head>
 <body>
 
 <div id="app">
     <div id="login">
-        <div class="logo-icon">🚀</div>
-        <h2>Ponte Virtual</h2>
+        <h2 style="text-align: center;">Ponte Virtual</h2>
         <input id="nick" placeholder="Seu apelido">
         <input id="sala" placeholder="Código da sala">
         <button class="main-btn" onclick="entrar()">Entrar agora</button>
@@ -63,12 +59,17 @@
         <div id="topo">
             <div class="info-sala">
                 <div><b>Sala:</b> <span id="nomeSala"></span></div>
-                <div class="online-count">● <span id="contagem">0</span> online</div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <span class="online-count" id="contagem">0 online</span>
+                    <button onclick="limparTelaLocal()" style="background: #fee2e2; color: #ef4444; border: none; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; cursor: pointer;">LIMPAR TELA</button>
+                </div>
             </div>
             <div id="digitando"></div>
         </div>
         <div id="mensagens"></div>
         <div id="envio">
+            <input type="file" id="file-input" accept="image/*" onchange="enviarFoto(this)">
+            <button class="btn-icon" onclick="document.getElementById('file-input').click()">📷</button>
             <input id="texto" placeholder="Mensagem..." oninput="avisarDigitando()" onkeydown="if(event.key==='Enter') enviarTexto()">
             <button class="send-btn" onclick="enviarTexto()">➤</button>
         </div>
@@ -99,55 +100,84 @@
         const userRef = db.ref(`salas/${salaAtual}/usuarios/${nickAtual}`);
         userRef.once("value", s => {
             if (s.exists()) return alert("Nick em uso!");
-            
             userRef.set(true);
             userRef.onDisconnect().remove();
-            
             document.getElementById('login').style.display = "none";
             document.getElementById('chat').style.display = "flex";
             document.getElementById('nomeSala').innerText = salaAtual;
-
             iniciarLógica();
         });
     }
 
     function iniciarLógica() {
-        // 1. Contador de Online
         db.ref(`salas/${salaAtual}/usuarios`).on("value", s => {
-            document.getElementById('contagem').innerText = s.numChildren();
+            document.getElementById('contagem').innerText = `${s.numChildren()} online`;
         });
 
-        // 2. Ouvir Mensagens
         db.ref(`salas/${salaAtual}/mensagens`).on("child_added", s => {
             const m = s.val();
-            const isMinha = m.nick === nickAtual;
-            const div = document.createElement("div");
-            div.className = `msg ${isMinha ? 'msg-in' : 'msg-out'}`;
-            div.innerHTML = `<div class="nick" style="color:${isMinha ? '#c7d2fe' : corNick(m.nick)}">${m.nick}</div>${m.texto}`;
-            document.getElementById('mensagens').appendChild(div);
-            document.getElementById('mensagens').scrollTop = document.getElementById('mensagens').scrollHeight;
-            
-            // Atualiza tempo da última atividade
+            renderizarMensagem(m);
             db.ref(`salas/${salaAtual}/lastActivity`).set(Date.now());
         });
 
-        // 3. Alerta de Digitando
         db.ref(`salas/${salaAtual}/status`).on("value", s => {
             const status = s.val() || {};
             const quem = Object.keys(status).filter(u => status[u] === true && u !== nickAtual);
             document.getElementById('digitando').innerText = quem.length ? `${quem[0]} está digitando...` : "";
         });
 
-        // 4. Limpeza Automática (5 minutos)
+        // Auto-limpeza do BANCO (5 min)
         setInterval(() => {
             db.ref(`salas/${salaAtual}/lastActivity`).once("value", s => {
-                const last = s.val();
-                if (last && (Date.now() - last > 300000)) { // 300000ms = 5min
-                    db.ref(`salas/${salaAtual}/mensagens`).remove();
-                    db.ref(`salas/${salaAtual}/lastActivity`).set(Date.now());
-                }
+                if (s.val() && (Date.now() - s.val() > 300000)) db.ref(`salas/${salaAtual}/mensagens`).remove();
             });
         }, 10000);
+    }
+
+    function renderizarMensagem(m) {
+        const isMinha = m.nick === nickAtual;
+        const div = document.createElement("div");
+        div.className = `msg ${isMinha ? 'msg-in' : 'msg-out'}`;
+        let conteudo = `<div class="nick" style="color:${isMinha ? '#c7d2fe' : corNick(m.nick)}">${m.nick}</div>`;
+        
+        if (m.tipo === "foto") {
+            conteudo += `<img src="${m.url}" onclick="window.open(this.src)">`;
+        } else {
+            conteudo += `<div>${m.texto}</div>`;
+        }
+        
+        div.innerHTML = conteudo;
+        document.getElementById('mensagens').appendChild(div);
+        document.getElementById('mensagens').scrollTop = document.getElementById('mensagens').scrollHeight;
+    }
+
+    function enviarTexto() {
+        const input = document.getElementById('texto');
+        if (!input.value.trim()) return;
+        db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, texto: input.value, tipo: "texto" });
+        db.ref(`salas/${salaAtual}/status/${nickAtual}`).remove();
+        input.value = "";
+    }
+
+    function enviarFoto(input) {
+        const file = input.files[0];
+        if (!file) return;
+        if (file.size > 500000) return alert("Foto muito grande! Use fotos menores que 500KB.");
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            db.ref(`salas/${salaAtual}/mensagens`).push({
+                nick: nickAtual,
+                url: e.target.result,
+                tipo: "foto"
+            });
+        };
+        reader.readAsDataURL(file);
+        input.value = "";
+    }
+
+    function limparTelaLocal() {
+        document.getElementById('mensagens').innerHTML = "";
     }
 
     function avisarDigitando() {
@@ -156,14 +186,6 @@
         digitandoTimeout = setTimeout(() => {
             db.ref(`salas/${salaAtual}/status/${nickAtual}`).remove();
         }, 2000);
-    }
-
-    function enviarTexto() {
-        const input = document.getElementById('texto');
-        if (!input.value.trim()) return;
-        db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, texto: input.value });
-        db.ref(`salas/${salaAtual}/status/${nickAtual}`).remove();
-        input.value = "";
     }
 </script>
 </body>
