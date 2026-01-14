@@ -9,92 +9,147 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+
         :root {
             --gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --bg-dark: #0f172a;
             --primary: #6366f1;
-            --bg: #0f172a;
         }
 
-        /* Previne scroll elástico no iOS e garante altura total */
-        html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: var(--bg); position: fixed; width: 100%; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
-        #app { width: 100%; max-width: 500px; height: 100%; background: white; display: flex; flex-direction: column; margin: 0 auto; position: relative; }
+        body, html { 
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg-dark);
+            overflow: hidden;
+            position: fixed;
+        }
 
-        /* Login */
-        #login { padding: 40px; display: flex; flex-direction: column; gap: 15px; justify-content: center; height: 100%; z-index: 100; position: absolute; width: 100%; box-sizing: border-box; background: white; }
-        .raio-icon { background: var(--gradient); width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 35px; color: white; }
+        #app { width: 100%; max-width: 450px; height: 100%; margin: 0 auto; background: #fff; display: flex; flex-direction: column; position: relative; }
 
-        /* Topo com área de segurança para celular */
-        #topo { padding: 25px 20px 15px 20px; background: white; border-bottom: 1px solid #f1f5f9; position: relative; }
-        .info-sala { display: flex; justify-content: space-between; align-items: center; }
-        .sala-label { font-size: 14px; font-weight: 500; }
-        #nomeSala { color: var(--primary); font-weight: 800; }
+        /* TELA DE LOGIN ELEGANTE */
+        #login { 
+            position: absolute; inset: 0; z-index: 100;
+            background: var(--bg-dark);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 40px; text-align: center;
+        }
+
+        .raio-container {
+            background: var(--gradient);
+            width: 80px; height: 80px;
+            border-radius: 24px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 40px; color: white;
+            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.4);
+            margin-bottom: 25px;
+            transform: rotate(-10deg);
+        }
+
+        #login h1 { color: white; margin: 0; font-weight: 800; font-size: 32px; letter-spacing: -1px; }
+        #login p { color: #94a3b8; font-size: 15px; margin-bottom: 35px; }
+
+        .input-group { width: 100%; display: flex; flex-direction: column; gap: 15px; }
+
+        input { 
+            width: 100%; padding: 16px 20px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            color: white; font-size: 16px; /* 16px evita zoom mobile */
+            outline: none; transition: 0.3s;
+        }
+        input:focus { border-color: var(--primary); background: rgba(255,255,255,0.08); }
+        input::placeholder { color: #64748b; }
+
+        .btn-entrar {
+            width: 100%; padding: 18px; margin-top: 10px;
+            background: var(--gradient);
+            color: white; border: none; border-radius: 16px;
+            font-weight: 700; font-size: 16px; cursor: pointer;
+            box-shadow: 0 10px 20px rgba(168, 85, 247, 0.3);
+        }
+
+        /* CHAT INTERFACE */
+        #chat { display: none; flex: 1; flex-direction: column; height: 100%; background: #f8fafc; }
+
+        #topo { 
+            padding: 30px 20px 15px; background: white; 
+            border-bottom: 1px solid #f1f5f9; display: flex; 
+            justify-content: space-between; align-items: center;
+        }
+        .topo-info b { font-weight: 800; color: var(--bg-dark); }
+        .online-status { font-size: 12px; color: #10b981; font-weight: 700; display: block; }
+
+        .btn-gear { background: #f1f5f9; border: none; width: 38px; height: 38px; border-radius: 12px; cursor: pointer; font-size: 18px; }
+
+        #mensagens { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
         
-        /* Botão Configuração */
-        .btn-config { background: #f8fafc; border: none; font-size: 18px; cursor: pointer; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        #menu-config { position: absolute; top: 75px; right: 20px; background: white; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border-radius: 12px; padding: 15px; display: none; flex-direction: column; gap: 12px; z-index: 110; border: 1px solid #eee; min-width: 150px; }
-        .config-item { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #334155; }
+        .msg { padding: 12px 16px; border-radius: 20px; max-width: 85%; font-size: 15px; line-height: 1.5; position: relative; animation: msgAnim 0.3s ease forwards; }
+        @keyframes msgAnim { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Mensagens */
-        #mensagens { flex: 1; padding: 15px; overflow-y: auto; background: #f1f5f9; display: flex; flex-direction: column; gap: 10px; }
-        .msg { padding: 10px 14px; border-radius: 16px; max-width: 85%; font-size: 15px; line-height: 1.4; position: relative; animation: fadeIn 0.2s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .msg-out { align-self: flex-start; background: white; color: #1e293b; border-bottom-left-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+        .msg-in { align-self: flex-end; background: var(--gradient); color: white; border-bottom-right-radius: 4px; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2); }
         
-        .msg-out { align-self: flex-start; background: white; color: #1e293b; border-bottom-left-radius: 4px; }
-        .msg-in { align-self: flex-end; background: var(--primary); color: white; border-bottom-right-radius: 4px; }
         .mention { background: #fbbf24; color: #000; padding: 0 4px; border-radius: 4px; font-weight: 700; }
-        
-        /* Imagens e Arquivos */
-        .msg img { max-width: 100%; border-radius: 10px; margin-top: 5px; }
-        .expirado-img { width: 80px; opacity: 0.4; filter: grayscale(1); margin: 5px auto; display: block; }
-        .timer-tag { font-size: 9px; opacity: 0.6; display: block; margin-top: 5px; text-align: right; }
+        .nick-msg { font-size: 10px; font-weight: 800; margin-bottom: 4px; text-transform: uppercase; opacity: 0.7; }
 
-        /* Envio Otimizado */
-        #envio { padding: 10px 15px; padding-bottom: 25px; background: white; display: flex; gap: 8px; align-items: center; }
-        /* Font-size 16px evita o zoom no input do celular */
-        #texto { background: #f8fafc; border: 1px solid #e2e8f0; flex: 1; padding: 12px 15px; border-radius: 25px; outline: none; font-size: 16px; -webkit-appearance: none; }
-        .btn-plus, .send-btn { width: 45px; height: 45px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
-        .btn-plus { background: #f1f5f9; color: #64748b; }
-        .send-btn { background: var(--primary); color: white; }
+        /* MENU CONFIG */
+        #menu-config { 
+            position: absolute; top: 80px; right: 20px; background: white; 
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1); border-radius: 16px; 
+            padding: 15px; display: none; flex-direction: column; gap: 12px; 
+            z-index: 110; border: 1px solid #eee; min-width: 160px;
+        }
 
-        input#nick, input#sala { font-size: 16px; } /* Garante login sem zoom também */
+        /* BARRA DE ENVIO */
+        #envio { padding: 15px; background: white; display: flex; gap: 10px; align-items: center; border-top: 1px solid #f1f5f9; padding-bottom: 30px; }
+        #texto { background: #f1f5f9; border: none; flex: 1; padding: 14px 20px; border-radius: 18px; font-size: 16px; color: var(--bg-dark); }
+        .btn-action { width: 48px; height: 48px; border-radius: 16px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .btn-file { background: #f1f5f9; color: #64748b; }
+        .btn-send { background: var(--gradient); color: white; box-shadow: 0 8px 15px rgba(99, 102, 241, 0.2); }
+
+        .msg img { max-width: 100%; border-radius: 12px; margin-top: 8px; }
     </style>
 </head>
 <body>
 
 <div id="app">
     <div id="login">
-        <div class="raio-icon">⚡</div>
-        <h2 style="text-align: center; margin: 0; font-weight: 900; letter-spacing: -1px;">Swiftly</h2>
-        <p style="text-align: center; color: #64748b; font-size: 14px; margin-bottom: 10px;">Chat Efêmero</p>
-        <input id="nick" placeholder="Seu apelido" maxlength="12">
-        <input id="sala" placeholder="Código da sala">
-        <button class="main-btn" style="width:100%; background:var(--gradient); color:white; border:none; padding:16px; border-radius:12px; font-weight:700; font-size:16px;" onclick="entrar()">Entrar</button>
+        <div class="raio-container">⚡</div>
+        <h1>Swiftly</h1>
+        <p>Segurança e velocidade em cada mensagem.</p>
+        
+        <div class="input-group">
+            <input id="nick" placeholder="Seu apelido" maxlength="12">
+            <input id="sala" placeholder="Nome da sala">
+            <button class="btn-entrar" onclick="entrar()">Começar a conversar</button>
+        </div>
     </div>
 
     <div id="chat">
         <div id="topo">
-            <div class="info-sala">
-                <div class="sala-label">Sala <span id="nomeSala"></span></div>
-                <div style="display:flex; align-items:center; gap:12px;">
-                    <span id="contagem" style="font-size:12px; color:#10b981; font-weight:700;">0 online</span>
-                    <button class="btn-config" onclick="toggleConfig()">⚙️</button>
-                </div>
+            <div class="topo-info">
+                <b>Sala: <span id="nomeSala"></span></b>
+                <span id="contagem" class="online-status">● 0 online</span>
             </div>
+            <button class="btn-gear" onclick="toggleConfig()">⚙️</button>
             
             <div id="menu-config">
-                <label class="config-item"><input type="checkbox" id="chkSom"> Ativar Som</label>
-                <label class="config-item"><input type="checkbox" id="chkAlerta"> Alerta na Aba</label>
+                <label style="font-size:13px;"><input type="checkbox" id="chkSom"> Ativar Som</label>
+                <label style="font-size:13px;"><input type="checkbox" id="chkAlerta"> Alerta na Aba</label>
             </div>
         </div>
 
         <div id="mensagens"></div>
 
         <div id="envio">
-            <button class="btn-plus" onclick="document.getElementById('img-input').click()">+</button>
+            <button class="btn-action btn-file" onclick="document.getElementById('img-input').click()">+</button>
             <input type="file" id="img-input" accept="image/*" style="display:none" onchange="processarFoto(this)">
-            <input id="texto" placeholder="Mensagem..." onkeydown="if(event.key==='Enter') enviarTexto()">
-            <button class="send-btn" onclick="enviarTexto()">➤</button>
+            <input id="texto" placeholder="Sua mensagem..." onkeydown="if(event.key==='Enter') enviarTexto()">
+            <button class="btn-action btn-send" onclick="enviarTexto()">➤</button>
         </div>
     </div>
 </div>
@@ -110,7 +165,6 @@
     const db = firebase.database();
     let salaAtual, nickAtual, entrarTime;
     let blinkInterval = null;
-    let totalUsuarios = 0;
     const notifySound = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
 
     function toggleConfig() {
@@ -140,8 +194,9 @@
 
     function iniciarLogica() {
         db.ref(`salas/${salaAtual}/usuarios`).on("value", s => {
-            totalUsuarios = s.numChildren();
-            document.getElementById('contagem').innerText = totalUsuarios + " online";
+            const total = s.numChildren();
+            document.getElementById('contagem').innerText = `● ${total} online`;
+            window.totalUsuarios = total;
         });
 
         db.ref(`salas/${salaAtual}/mensagens`).orderByChild("timestamp").startAt(entrarTime).on("child_added", s => {
@@ -150,8 +205,12 @@
             
             if (m.nick !== nickAtual) {
                 if (document.getElementById('chkSom').checked) notifySound.play().catch(()=>{});
-                if (totalUsuarios === 2 && document.getElementById('chkAlerta').checked) {
-                    iniciarAlertaAba();
+                if (window.totalUsuarios === 2 && document.getElementById('chkAlerta').checked) {
+                    if (!blinkInterval) {
+                        blinkInterval = setInterval(() => {
+                            document.title = document.title === "Swiftly" ? "🟠 MENSAGEM" : "Swiftly";
+                        }, 800);
+                    }
                 }
             }
         });
@@ -161,20 +220,6 @@
             document.title = "Swiftly";
             blinkInterval = null;
         };
-
-        db.ref(`salas/${salaAtual}/mensagens`).on("child_changed", s => {
-            if (s.val().expirado) {
-                const cont = document.getElementById(`cont-${s.key}`);
-                if(cont) cont.innerHTML = `<small style="color:#94a3b8">Arquivo expirado</small>`;
-            }
-        });
-    }
-
-    function iniciarAlertaAba() {
-        if (blinkInterval) return;
-        blinkInterval = setInterval(() => {
-            document.title = document.title === "Swiftly" ? "🟠 MENSAGEM" : "Swiftly";
-        }, 800);
     }
 
     function renderizarMensagem(m, key) {
@@ -182,23 +227,18 @@
         const div = document.createElement("div");
         div.className = `msg ${isMinha ? 'msg-in' : 'msg-out'}`;
         
-        let textoProcessado = m.texto || "";
-        textoProcessado = textoProcessado.replace(/@(\w+)/g, '<span class="mention">@$1</span>');
+        let texto = (m.texto || "").replace(/@(\w+)/g, '<span class="mention">@$1</span>');
 
-        let html = `<div style="font-size:10px; font-weight:800; margin-bottom:3px; opacity:0.8;">${m.nick}</div><div id="cont-${key}">`;
-        
-        if (m.expirado) html += `<small style="color:#94a3b8">Arquivo expirado</small>`;
+        let html = `<div class="nick-msg">${m.nick}</div><div id="cont-${key}">`;
+        if (m.expirado) html += `<small style="opacity:0.6">Arquivo expirado</small>`;
         else if (m.tipo === "foto") {
-            html += `<img src="${m.url}"><span class="timer-tag">Expirando...</span>`;
+            html += `<img src="${m.url}"><span style="font-size:8px; display:block; text-align:right; margin-top:4px;">Alguns segundos restantes...</span>`;
             if (isMinha) setTimeout(() => db.ref(`salas/${salaAtual}/mensagens/${key}`).update({ expirado: true, url: null }), 60000);
-        } else {
-            html += textoProcessado;
-        }
+        } else html += texto;
 
         div.innerHTML = html + `</div>`;
-        const box = document.getElementById('mensagens');
-        box.appendChild(div);
-        box.scrollTop = box.scrollHeight;
+        document.getElementById('mensagens').appendChild(div);
+        document.getElementById('mensagens').scrollTop = document.getElementById('mensagens').scrollHeight;
     }
 
     function enviarTexto() {
