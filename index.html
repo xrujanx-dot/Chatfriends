@@ -29,7 +29,6 @@
 
         #app { width: 100%; max-width: 450px; height: 100%; margin: 0 auto; background: #fff; display: flex; flex-direction: column; position: relative; }
 
-        /* LOGIN PRESERVADO */
         #login { 
             position: absolute; inset: 0; z-index: 100;
             background: var(--bg-dark);
@@ -67,7 +66,6 @@
             font-weight: 700; font-size: 16px; cursor: pointer;
         }
 
-        /* CHAT */
         #chat { display: none; flex: 1; flex-direction: column; height: 100%; background: #f8fafc; overflow: hidden; }
 
         #topo { 
@@ -81,9 +79,7 @@
 
         #mensagens { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
         
-        .msg { padding: 12px 16px; border-radius: 20px; max-width: 85%; font-size: 15px; line-height: 1.5; position: relative; animation: msgAnim 0.3s ease forwards; }
-        @keyframes msgAnim { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
+        .msg { padding: 12px 16px; border-radius: 20px; max-width: 85%; font-size: 15px; line-height: 1.5; position: relative; }
         .msg-out { align-self: flex-start; background: white; color: #1e293b; border-bottom-left-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
         .msg-in { align-self: flex-end; background: var(--gradient); color: white; border-bottom-right-radius: 4px; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2); }
         
@@ -129,9 +125,9 @@
             </div>
             <button class="btn-gear" onclick="toggleConfig()">⚙️</button>
             <div id="menu-config">
-                <label style="font-size:13px; cursor:pointer;"><input type="checkbox" id="chkSom"> Ativar Som 🔊</label>
-                <button onclick="limparChat()" style="color:#64748b; font-weight:600; background:none; border:none; text-align:left; padding:8px 0; font-family:inherit; cursor:pointer;">Limpar Conversa 🧹</button>
-                <button onclick="sairDaSala()" style="color:#ef4444; font-weight:700; border-top:1px solid #f1f5f9; padding-top:10px; background:none; border:none; text-align:left; font-family:inherit; cursor:pointer;">Sair da Sala 🚪</button>
+                <label style="font-size:13px; cursor:pointer;"><input type="checkbox" id="chkSom"> Sons 🔊</label>
+                <button onclick="limparChat()" style="color:#64748b; font-weight:600; background:none; border:none; text-align:left; padding:8px 0; cursor:pointer;">Limpar Chat 🧹</button>
+                <button onclick="sairDaSala()" style="color:#ef4444; font-weight:700; border-top:1px solid #f1f5f9; padding-top:10px; background:none; border:none; text-align:left; cursor:pointer;">Sair 🚪</button>
             </div>
         </div>
 
@@ -139,9 +135,9 @@
 
         <div id="envio">
             <button class="btn-action" style="background:#f1f5f9; color:#64748b;" onclick="toggleAnexos()">+</button>
-            <div id="menu-anexos" style="position: absolute; bottom: 90px; left: 15px; background: white; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: none; flex-direction: column; z-index: 110; border:1px solid #eee; overflow: hidden;">
-                <button onclick="document.getElementById('img-input').click()" style="padding:15px; border:none; background:none; font-weight:600; font-size:14px; text-align:left; cursor:pointer; width: 100%;">🖼️ Foto (1m)</button>
-                <button onclick="document.getElementById('file-input').click()" style="padding:15px; border:none; background:none; font-weight:600; font-size:14px; text-align:left; cursor:pointer; width: 100%;">📄 Arquivo (1m)</button>
+            <div id="menu-anexos" style="position: absolute; bottom: 90px; left: 15px; background: white; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: none; flex-direction: column; z-index: 110; border:1px solid #eee;">
+                <button onclick="document.getElementById('img-input').click()" style="padding:15px; border:none; background:none; font-weight:600; font-size:14px; text-align:left; cursor:pointer;">🖼️ Foto (Até 10MB)</button>
+                <button onclick="document.getElementById('file-input').click()" style="padding:15px; border:none; background:none; font-weight:600; font-size:14px; text-align:left; cursor:pointer;">📄 Arquivo (2MB)</button>
             </div>
             <input type="file" id="img-input" accept="image/*" style="display:none" onchange="processarAnexo(this, 'foto')">
             <input type="file" id="file-input" style="display:none" onchange="processarAnexo(this, 'arquivo')">
@@ -169,16 +165,6 @@
             setTimeout(scrollChat, 100);
         });
     }
-
-    window.onload = () => {
-        const savedNick = localStorage.getItem('swiftly_nick');
-        const savedSala = localStorage.getItem('swiftly_sala');
-        if (savedNick && savedSala) {
-            document.getElementById('nick').value = savedNick;
-            document.getElementById('sala').value = savedSala;
-            entrar();
-        }
-    };
 
     function scrollChat() {
         const m = document.getElementById('mensagens');
@@ -226,7 +212,7 @@
         db.ref(`salas/${salaAtual}/mensagens`).on("child_changed", s => {
             if (s.val().expirado) {
                 const cont = document.getElementById(`cont-${s.key}`);
-                if(cont) cont.innerHTML = `<small style="opacity:0.6">⚠️ Conteúdo expirado</small>`;
+                if(cont) cont.innerHTML = `<small style="opacity:0.6">⚠️ Expirado</small>`;
             }
         });
     }
@@ -235,11 +221,10 @@
         const isMinha = m.nick === nickAtual;
         const div = document.createElement("div");
         div.className = `msg ${isMinha ? 'msg-in' : 'msg-out'}`;
-        
         let html = `<div class="nick-msg">${m.nick}</div><div id="cont-${key}">`;
 
         if (m.expirado) {
-            html += `<small style="opacity:0.6">⚠️ Conteúdo expirado</small>`;
+            html += `<small style="opacity:0.6">⚠️ Expirado</small>`;
         } else if (m.tipo === "foto") {
             html += `<img src="${m.url}"><span class="exp-aviso">Apaga em 1m...</span>`;
             if (isMinha) agendarExpiracao(key);
@@ -266,31 +251,45 @@
         if (!input.value.trim()) return;
         db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, texto: input.value, tipo: "texto", timestamp: Date.now() });
         input.value = "";
-        input.focus();
+    }
+
+    function redimensionarImagem(file, callback) {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (e) => {
+            const img = new Image();
+            img.src = e.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let w = img.width, h = img.height;
+                const max = 1200;
+                if (w > h) { if (w > max) { h *= max / w; w = max; } }
+                else { if (h > max) { w *= max / h; h = max; } }
+                canvas.width = w; canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                callback(canvas.toDataURL('image/jpeg', 0.7));
+            };
+        };
     }
 
     function processarAnexo(input, tipo) {
         const file = input.files[0];
         if (!file) return;
-        
-        // LIMITE DE 2MB (2 * 1024 * 1024 bytes)
-        if (file.size > 2097152) { 
-            alert("O arquivo excede 2MB! Tente um arquivo menor para garantir o envio."); 
-            return; 
-        }
-
         toggleAnexos();
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const m = { nick: nickAtual, timestamp: Date.now(), tipo: tipo, expirado: false };
-            if (tipo === 'foto') m.url = e.target.result;
-            else { m.data = e.target.result; m.nome = file.name; }
-            
-            db.ref(`salas/${salaAtual}/mensagens`).push(m).catch(err => {
-                alert("Erro ao enviar: O arquivo pode ser muito grande para o servidor.");
+
+        if (tipo === 'foto') {
+            if (file.size > 10485760) return alert("Máximo 10MB");
+            redimensionarImagem(file, (base64) => {
+                db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, url: base64, tipo: "foto", timestamp: Date.now(), expirado: false });
             });
-        };
-        reader.readAsDataURL(file);
+        } else {
+            if (file.size > 2097152) return alert("Máximo 2MB");
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, data: e.target.result, nome: file.name, tipo: "arquivo", timestamp: Date.now(), expirado: false });
+            };
+            reader.readAsDataURL(file);
+        }
         input.value = "";
     }
 
