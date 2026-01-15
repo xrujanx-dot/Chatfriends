@@ -84,7 +84,7 @@
             justify-content: space-between; align-items: center;
             flex-shrink: 0;
         }
-        .online-status { font-size: 12px; color: #10b981; font-weight: 700; display: block; }
+        .online-status { font-size: 12px; color: #10b981; font-weight: 700; cursor: pointer; padding: 5px; border-radius: 8px; background: #f0fdf4; }
         .btn-gear { background: #f1f5f9; border: none; width: 38px; height: 38px; border-radius: 12px; cursor: pointer; font-size: 18px; }
 
         #mensagens { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
@@ -93,10 +93,13 @@
         .msg-out { align-self: flex-start; background: white; color: #1e293b; border-bottom-left-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
         .msg-in { align-self: flex-end; background: var(--gradient); color: white; border-bottom-right-radius: 4px; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2); }
         
-        .nick-msg { font-size: 10px; font-weight: 800; margin-bottom: 4px; text-transform: uppercase; opacity: 0.7; display: flex; justify-content: space-between; gap: 10px; }
-        .hora-msg { font-weight: 400; opacity: 0.8; font-size: 9px; }
+        .nick-msg { font-size: 10px; font-weight: 800; margin-bottom: 4px; text-transform: uppercase; display: flex; justify-content: space-between; gap: 10px; }
+        .hora-msg { font-weight: 400; opacity: 0.8; font-size: 9px; color: #64748b; }
+        .msg-in .hora-msg { color: white; }
 
-        #menu-config { 
+        .msg-sistema { align-self: center; font-size: 11px; color: #94a3b8; background: rgba(0,0,0,0.05); padding: 4px 12px; border-radius: 10px; margin: 5px 0; }
+
+        #menu-config, #lista-online { 
             position: absolute; top: 65px; right: 20px; background: white; 
             box-shadow: 0 15px 30px rgba(0,0,0,0.1); border-radius: 16px; 
             padding: 15px; display: none; flex-direction: column; gap: 12px; 
@@ -113,17 +116,7 @@
         .msg-in .file-box { background: rgba(255,255,255,0.15); color: white; }
         .exp-aviso { font-size: 9px; display: block; text-align: right; margin-top: 4px; opacity: 0.8; }
 
-        .btn-download {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            margin-top: 8px;
-            font-size: 11px;
-            text-decoration: none;
-            color: inherit;
-            opacity: 0.6;
-            font-weight: 600;
-        }
+        .btn-download { display: inline-flex; align-items: center; gap: 5px; margin-top: 8px; font-size: 11px; text-decoration: none; color: inherit; opacity: 0.6; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -144,13 +137,19 @@
         <div id="topo">
             <div class="topo-info">
                 <b>Sala: <span id="nomeSala"></span></b>
-                <span id="contagem" class="online-status">● 0 online</span>
+                <span id="contagem" class="online-status" onclick="toggleOnline()">● 0 online</span>
             </div>
             <button class="btn-gear" onclick="toggleConfig()">⚙️</button>
+            
             <div id="menu-config">
                 <label style="font-size:13px; cursor:pointer;"><input type="checkbox" id="chkSom"> Sons 🔊</label>
                 <button onclick="limparChat()" style="color:#64748b; font-weight:600; background:none; border:none; text-align:left; padding:8px 0; cursor:pointer;">Limpar Chat 🧹</button>
                 <button onclick="sairDaSala()" style="color:#ef4444; font-weight:700; border-top:1px solid #f1f5f9; padding-top:10px; background:none; border:none; text-align:left; cursor:pointer;">Sair 🚪</button>
+            </div>
+
+            <div id="lista-online">
+                <small style="font-weight:800; color:#64748b; margin-bottom:5px; display:block;">USUÁRIOS ONLINE:</small>
+                <div id="usuarios-lista" style="font-size:14px; display:flex; flex-direction:column; gap:5px; max-height:200px; overflow-y:auto;"></div>
             </div>
         </div>
 
@@ -171,21 +170,6 @@
 </div>
 
 <script>
-    function fixMobileHeight() {
-        const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-        document.getElementById('app').style.height = vh + 'px';
-        window.scrollTo(0, 0);
-    }
-
-    if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', () => {
-            fixMobileHeight();
-            setTimeout(scrollChat, 200);
-        });
-        window.visualViewport.addEventListener('scroll', () => window.scrollTo(0, 0));
-    }
-    window.addEventListener('load', fixMobileHeight);
-
     firebase.initializeApp({
         apiKey: "AIzaSyCkkkHhydC92yB5N364Ula4-aM2LUlSmG4",
         authDomain: "ponte-virtual-rujan.firebaseapp.com",
@@ -197,7 +181,25 @@
     let salaAtual, nickAtual, entrarTime;
     const notifySound = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
 
-    // NOVA FUNÇÃO: FORMATAR HORA
+    // CORES PARA OS NICKS
+    function gerarCorNick(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        let c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+        return "#" + "00000".substring(0, 6 - c.length) + c;
+    }
+
+    function fixMobileHeight() {
+        const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        document.getElementById('app').style.height = vh + 'px';
+        window.scrollTo(0, 0);
+    }
+
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', () => { fixMobileHeight(); setTimeout(scrollChat, 200); });
+        window.visualViewport.addEventListener('scroll', () => window.scrollTo(0, 0));
+    }
+
     function obterHora() {
         const d = new Date();
         return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
@@ -211,6 +213,13 @@
     function toggleConfig() {
         const m = document.getElementById('menu-config');
         m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
+        document.getElementById('lista-online').style.display = 'none';
+    }
+
+    function toggleOnline() {
+        const m = document.getElementById('lista-online');
+        m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
+        document.getElementById('menu-config').style.display = 'none';
     }
 
     function toggleAnexos() {
@@ -227,6 +236,9 @@
         localStorage.setItem('swiftly_sala', salaAtual);
         entrarTime = Date.now();
 
+        // Envia mensagem de sistema: "Entrou na sala"
+        db.ref(`salas/${salaAtual}/mensagens`).push({ tipo: "sistema", texto: `${nickAtual} entrou na sala`, timestamp: Date.now() });
+
         db.ref(`salas/${salaAtual}/usuarios/${nickAtual}`).set(true);
         db.ref(`salas/${salaAtual}/usuarios/${nickAtual}`).onDisconnect().remove();
 
@@ -239,12 +251,14 @@
 
     function iniciarLogica() {
         db.ref(`salas/${salaAtual}/usuarios`).on("value", s => {
-            document.getElementById('contagem').innerText = `● ${s.numChildren() || 0} online`;
+            const users = s.val() ? Object.keys(s.val()) : [];
+            document.getElementById('contagem').innerText = `● ${users.length} online`;
+            document.getElementById('usuarios-lista').innerHTML = users.map(u => `<div style="color:${gerarCorNick(u)}; font-weight:700;">● ${u}</div>`).join("");
         });
 
         db.ref(`salas/${salaAtual}/mensagens`).orderByChild("timestamp").startAt(entrarTime).on("child_added", s => {
             renderizarMensagem(s.val(), s.key);
-            if (s.val().nick !== nickAtual && document.getElementById('chkSom').checked) notifySound.play().catch(()=>{});
+            if (s.val().nick && s.val().nick !== nickAtual && document.getElementById('chkSom').checked) notifySound.play().catch(()=>{});
         });
 
         db.ref(`salas/${salaAtual}/mensagens`).on("child_changed", s => {
@@ -256,19 +270,28 @@
     }
 
     function renderizarMensagem(m, key) {
+        if(m.tipo === "sistema") {
+            const divSis = document.createElement("div");
+            divSis.className = "msg-sistema";
+            divSis.innerText = m.texto;
+            document.getElementById('mensagens').appendChild(divSis);
+            scrollChat();
+            return;
+        }
+
         const isMinha = m.nick === nickAtual;
         const div = document.createElement("div");
         div.className = `msg ${isMinha ? 'msg-in' : 'msg-out'}`;
-        // ADICIONADO A HORA NO HTML ABAIXO
-        let html = `<div class="nick-msg"><span>${m.nick}</span> <span class="hora-msg">${m.hora || ''}</span></div><div id="cont-${key}">`;
+        
+        // COR DO NICK DINÂMICA (se for minha mensagem no tema roxo, o nick fica branco por contraste, se for dos outros, ganha cor)
+        const corNick = isMinha ? "#fff" : gerarCorNick(m.nick);
+        let html = `<div class="nick-msg"><span style="color:${corNick}">${m.nick}</span> <span class="hora-msg">${m.hora || ''}</span></div><div id="cont-${key}">`;
 
         if (m.expirado) {
             html += `<small style="opacity:0.6">⚠️ Expirado</small>`;
         } else if (m.tipo === "foto") {
             const extension = m.formato || 'jpg';
-            html += `<img src="${m.url}">
-                     <a href="${m.url}" download="swiftly_${Date.now()}.${extension}" class="btn-download">📥 Baixar .${extension.toUpperCase()}</a>
-                     <span class="exp-aviso">Apaga em 1m...</span>`;
+            html += `<img src="${m.url}"><a href="${m.url}" download="swiftly_${Date.now()}.${extension}" class="btn-download">📥 Baixar .${extension.toUpperCase()}</a><span class="exp-aviso">Apaga em 1m...</span>`;
             if (isMinha) agendarExpiracao(key);
         } else if (m.tipo === "arquivo") {
             html += `<a href="${m.data}" download="${m.nome}" class="file-box">📄 <b>${m.nome}</b></a><span class="exp-aviso">Apaga em 1m...</span>`;
@@ -283,22 +306,13 @@
     }
 
     function agendarExpiracao(key) {
-        setTimeout(() => {
-            db.ref(`salas/${salaAtual}/mensagens/${key}`).update({ expirado: true, url: null, data: null });
-        }, 60000);
+        setTimeout(() => { db.ref(`salas/${salaAtual}/mensagens/${key}`).update({ expirado: true, url: null, data: null }); }, 60000);
     }
 
     function enviarTexto() {
         const input = document.getElementById('texto');
         if (!input.value.trim()) return;
-        // ADICIONADO O CAMPO HORA NO PUSH
-        db.ref(`salas/${salaAtual}/mensagens`).push({ 
-            nick: nickAtual, 
-            texto: input.value, 
-            tipo: "texto", 
-            timestamp: Date.now(), 
-            hora: obterHora() 
-        });
+        db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, texto: input.value, tipo: "texto", timestamp: Date.now(), hora: obterHora() });
         input.value = "";
     }
 
@@ -312,13 +326,10 @@
             img.src = e.target.result;
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                let w = img.width, h = img.height;
-                const max = 1200;
-                if (w > h) { if (w > max) { h *= max / w; w = max; } }
-                else { if (h > max) { w *= max / h; h = max; } }
+                let w = img.width, h = img.height, max = 1200;
+                if (w > h) { if (w > max) { h *= max/w; w = max; } } else { if (h > max) { w *= max/h; h = max; } }
                 canvas.width = w; canvas.height = h;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, w, h);
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
                 const finalFormat = (type === 'image/png' || type === 'image/gif') ? type : 'image/jpeg';
                 callback(canvas.toDataURL(finalFormat, 0.8), extension);
             };
@@ -331,30 +342,12 @@
         toggleAnexos();
         if (tipo === 'foto') {
             redimensionarImagem(file, (base64, ext) => {
-                // ADICIONADO O CAMPO HORA NO PUSH DA FOTO
-                db.ref(`salas/${salaAtual}/mensagens`).push({ 
-                    nick: nickAtual, 
-                    url: base64, 
-                    tipo: "foto", 
-                    formato: ext, 
-                    timestamp: Date.now(), 
-                    expirado: false,
-                    hora: obterHora()
-                });
+                db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, url: base64, tipo: "foto", formato: ext, timestamp: Date.now(), expirado: false, hora: obterHora() });
             });
         } else {
             const reader = new FileReader();
             reader.onload = (e) => {
-                // ADICIONADO O CAMPO HORA NO PUSH DO ARQUIVO
-                db.ref(`salas/${salaAtual}/mensagens`).push({ 
-                    nick: nickAtual, 
-                    data: e.target.result, 
-                    nome: file.name, 
-                    tipo: "arquivo", 
-                    timestamp: Date.now(), 
-                    expirado: false,
-                    hora: obterHora()
-                });
+                db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, data: e.target.result, nome: file.name, tipo: "arquivo", timestamp: Date.now(), expirado: false, hora: obterHora() });
             };
             reader.readAsDataURL(file);
         }
