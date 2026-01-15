@@ -29,7 +29,7 @@
 
         #app { width: 100%; max-width: 450px; height: 100%; margin: 0 auto; background: #fff; display: flex; flex-direction: column; position: relative; }
 
-        /* TELA DE LOGIN */
+        /* LOGIN PRESERVADO */
         #login { 
             position: absolute; inset: 0; z-index: 100;
             background: var(--bg-dark);
@@ -52,18 +52,14 @@
         #login p { color: #94a3b8; font-size: 15px; margin-bottom: 35px; }
 
         .input-group { width: 100%; display: flex; flex-direction: column; gap: 15px; }
-
         input { 
             width: 100%; padding: 16px 20px;
             background: rgba(255,255,255,0.05);
             border: 1px solid rgba(255,255,255,0.1);
             border-radius: 16px;
             color: white; font-size: 16px;
-            outline: none; transition: 0.3s;
+            outline: none;
         }
-        input:focus { border-color: var(--primary); background: rgba(255,255,255,0.08); }
-        input::placeholder { color: #64748b; }
-
         .btn-entrar {
             width: 100%; padding: 18px; margin-top: 10px;
             background: var(--gradient);
@@ -80,20 +76,10 @@
             justify-content: space-between; align-items: center;
             flex-shrink: 0;
         }
-        .topo-info b { font-weight: 800; color: var(--bg-dark); }
         .online-status { font-size: 12px; color: #10b981; font-weight: 700; display: block; }
-
         .btn-gear { background: #f1f5f9; border: none; width: 38px; height: 38px; border-radius: 12px; cursor: pointer; font-size: 18px; }
 
-        #mensagens { 
-            flex: 1; 
-            padding: 20px; 
-            overflow-y: auto; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 12px;
-            -webkit-overflow-scrolling: touch;
-        }
+        #mensagens { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
         
         .msg { padding: 12px 16px; border-radius: 20px; max-width: 85%; font-size: 15px; line-height: 1.5; position: relative; animation: msgAnim 0.3s ease forwards; }
         @keyframes msgAnim { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -110,21 +96,15 @@
             z-index: 110; border: 1px solid #eee; min-width: 180px;
         }
 
-        .btn-menu-item { background: none; border: none; padding: 8px 0; font-family: inherit; font-size: 13px; text-align: left; cursor: pointer; width: 100%; }
-        .btn-sair { color: #ef4444; font-weight: 700; border-top: 1px solid #f1f5f9; padding-top: 10px; }
-
-        #envio { 
-            padding: 15px; background: white; 
-            display: flex; gap: 10px; align-items: center; 
-            border-top: 1px solid #f1f5f9; 
-            padding-bottom: calc(15px + env(safe-area-inset-bottom)); 
-            flex-shrink: 0;
-        }
+        #envio { padding: 15px; background: white; display: flex; gap: 10px; align-items: center; border-top: 1px solid #f1f5f9; padding-bottom: calc(15px + env(safe-area-inset-bottom)); flex-shrink: 0; position: relative; }
         #texto { background: #f1f5f9; border: none; flex: 1; padding: 14px 20px; border-radius: 18px; font-size: 16px; color: var(--bg-dark); outline: none; }
+        
         .btn-action { width: 48px; height: 48px; border-radius: 16px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-        .btn-send { background: var(--gradient); color: white; }
 
-        .msg img { max-width: 100%; border-radius: 12px; margin-top: 8px; }
+        .msg img { max-width: 100%; border-radius: 12px; margin-top: 8px; display: block; }
+        .file-box { background: rgba(0,0,0,0.05); padding: 10px; border-radius: 10px; display: flex; align-items: center; gap: 8px; font-size: 13px; color: inherit; text-decoration: none;}
+        .msg-in .file-box { background: rgba(255,255,255,0.15); color: white; }
+        .exp-aviso { font-size: 9px; display: block; text-align: right; margin-top: 4px; opacity: 0.8; }
     </style>
 </head>
 <body>
@@ -150,8 +130,8 @@
             <button class="btn-gear" onclick="toggleConfig()">⚙️</button>
             <div id="menu-config">
                 <label style="font-size:13px; cursor:pointer;"><input type="checkbox" id="chkSom"> Ativar Som 🔊</label>
-                <button class="btn-menu-item" onclick="limparChat()" style="color:#64748b; font-weight:600;">Limpar Conversa 🧹</button>
-                <button class="btn-menu-item btn-sair" onclick="sairDaSala()">Sair da Sala 🚪</button>
+                <button onclick="limparChat()" style="color:#64748b; font-weight:600; background:none; border:none; text-align:left; padding:8px 0; font-family:inherit; cursor:pointer;">Limpar Conversa 🧹</button>
+                <button onclick="sairDaSala()" style="color:#ef4444; font-weight:700; border-top:1px solid #f1f5f9; padding-top:10px; background:none; border:none; text-align:left; font-family:inherit; cursor:pointer;">Sair da Sala 🚪</button>
             </div>
         </div>
 
@@ -159,14 +139,14 @@
 
         <div id="envio">
             <button class="btn-action" style="background:#f1f5f9; color:#64748b;" onclick="toggleAnexos()">+</button>
-            <div id="menu-anexos" style="position: absolute; bottom: 90px; left: 15px; background: white; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: none; flex-direction: column; z-index: 110; border:1px solid #eee;">
-                <button onclick="document.getElementById('img-input').click()" style="padding:15px; border:none; background:none; font-weight:600; font-size:14px; text-align:left;">🖼️ Foto</button>
-                <button onclick="document.getElementById('file-input').click()" style="padding:15px; border:none; background:none; font-weight:600; font-size:14px; text-align:left;">📄 Arquivo</button>
+            <div id="menu-anexos" style="position: absolute; bottom: 90px; left: 15px; background: white; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: none; flex-direction: column; z-index: 110; border:1px solid #eee; overflow: hidden;">
+                <button onclick="document.getElementById('img-input').click()" style="padding:15px; border:none; background:none; font-weight:600; font-size:14px; text-align:left; cursor:pointer; width: 100%;">🖼️ Foto (1m)</button>
+                <button onclick="document.getElementById('file-input').click()" style="padding:15px; border:none; background:none; font-weight:600; font-size:14px; text-align:left; cursor:pointer; width: 100%;">📄 Arquivo (1m)</button>
             </div>
-            <input type="file" id="img-input" accept="image/*" style="display:none" onchange="processarFoto(this)">
-            <input type="file" id="file-input" style="display:none" onchange="enviarArquivo(this)">
+            <input type="file" id="img-input" accept="image/*" style="display:none" onchange="processarAnexo(this, 'foto')">
+            <input type="file" id="file-input" style="display:none" onchange="processarAnexo(this, 'arquivo')">
             <input id="texto" type="text" autocomplete="off" placeholder="Sua mensagem..." onkeydown="if(event.key==='Enter'){ event.preventDefault(); enviarTexto(); }">
-            <button class="btn-action btn-send" onclick="enviarTexto()">➤</button>
+            <button class="btn-action" style="background:var(--gradient); color:white;" onclick="enviarTexto()">➤</button>
         </div>
     </div>
 </div>
@@ -183,11 +163,10 @@
     let salaAtual, nickAtual, entrarTime;
     const notifySound = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
 
-    // AJUSTE DE VIEWPORT PARA TECLADO MOBILE
     if (window.visualViewport) {
         window.visualViewport.addEventListener('resize', () => {
             document.body.style.height = window.visualViewport.height + 'px';
-            scrollChat();
+            setTimeout(scrollChat, 100);
         });
     }
 
@@ -216,24 +195,17 @@
         m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
     }
 
-    function limparNick(str) {
-        return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "");
-    }
-
     function entrar() {
-        nickAtual = limparNick(document.getElementById('nick').value.trim());
+        nickAtual = document.getElementById('nick').value.trim().replace(/[^a-zA-Z0-9]/g, "");
         salaAtual = document.getElementById('sala').value.trim().toLowerCase();
         if (!nickAtual || !salaAtual) return;
 
         localStorage.setItem('swiftly_nick', nickAtual);
         localStorage.setItem('swiftly_sala', salaAtual);
-
         entrarTime = Date.now();
-        
-        // CORREÇÃO DE ONLINE: Garante registro imediato e limpeza ao sair
-        const userRef = db.ref(`salas/${salaAtual}/usuarios/${nickAtual}`);
-        userRef.set(true);
-        userRef.onDisconnect().remove();
+
+        db.ref(`salas/${salaAtual}/usuarios/${nickAtual}`).set(true);
+        db.ref(`salas/${salaAtual}/usuarios/${nickAtual}`).onDisconnect().remove();
 
         document.getElementById('login').style.display = "none";
         document.getElementById('chat').style.display = "flex";
@@ -241,31 +213,21 @@
         iniciarLogica();
     }
 
-    function sairDaSala() {
-        db.ref(`salas/${salaAtual}/usuarios/${nickAtual}`).remove().then(() => {
-            localStorage.clear();
-            location.reload();
-        });
-    }
-
-    function limparChat() {
-        document.getElementById('mensagens').innerHTML = "";
-        toggleConfig();
-    }
-
     function iniciarLogica() {
-        // Contador de Online em tempo real
         db.ref(`salas/${salaAtual}/usuarios`).on("value", s => {
-            const count = s.numChildren() || 0;
-            document.getElementById('contagem').innerText = `● ${count} online`;
+            document.getElementById('contagem').innerText = `● ${s.numChildren() || 0} online`;
         });
 
-        // Monitor de mensagens
         db.ref(`salas/${salaAtual}/mensagens`).orderByChild("timestamp").startAt(entrarTime).on("child_added", s => {
-            const m = s.val();
-            renderizarMensagem(m, s.key);
-            scrollChat();
-            if (m.nick !== nickAtual && document.getElementById('chkSom').checked) notifySound.play().catch(()=>{});
+            renderizarMensagem(s.val(), s.key);
+            if (s.val().nick !== nickAtual && document.getElementById('chkSom').checked) notifySound.play().catch(()=>{});
+        });
+
+        db.ref(`salas/${salaAtual}/mensagens`).on("child_changed", s => {
+            if (s.val().expirado) {
+                const cont = document.getElementById(`cont-${s.key}`);
+                if(cont) cont.innerHTML = `<small style="opacity:0.6">⚠️ Conteúdo expirado</small>`;
+            }
         });
     }
 
@@ -274,10 +236,29 @@
         const div = document.createElement("div");
         div.className = `msg ${isMinha ? 'msg-in' : 'msg-out'}`;
         
-        let conteudo = m.tipo === 'foto' ? `<img src="${m.url}">` : m.texto;
-        div.innerHTML = `<div class="nick-msg">${m.nick}</div><div id="cont-${key}">${conteudo}</div>`;
-        
+        let html = `<div class="nick-msg">${m.nick}</div><div id="cont-${key}">`;
+
+        if (m.expirado) {
+            html += `<small style="opacity:0.6">⚠️ Conteúdo expirado</small>`;
+        } else if (m.tipo === "foto") {
+            html += `<img src="${m.url}"><span class="exp-aviso">Apaga em 1m...</span>`;
+            if (isMinha) agendarExpiracao(key);
+        } else if (m.tipo === "arquivo") {
+            html += `<a href="${m.data}" download="${m.nome}" class="file-box">📄 <b>${m.nome}</b></a><span class="exp-aviso">Apaga em 1m...</span>`;
+            if (isMinha) agendarExpiracao(key);
+        } else {
+            html += m.texto;
+        }
+
+        div.innerHTML = html + `</div>`;
         document.getElementById('mensagens').appendChild(div);
+        scrollChat();
+    }
+
+    function agendarExpiracao(key) {
+        setTimeout(() => {
+            db.ref(`salas/${salaAtual}/mensagens/${key}`).update({ expirado: true, url: null, data: null });
+        }, 60000);
     }
 
     function enviarTexto() {
@@ -286,28 +267,35 @@
         db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, texto: input.value, tipo: "texto", timestamp: Date.now() });
         input.value = "";
         input.focus();
-        scrollChat();
     }
 
-    function processarFoto(input) {
-        const file = input.files[0]; if (!file) return;
+    function processarAnexo(input, tipo) {
+        const file = input.files[0];
+        if (!file) return;
+        
+        // LIMITE DE 2MB (2 * 1024 * 1024 bytes)
+        if (file.size > 2097152) { 
+            alert("O arquivo excede 2MB! Tente um arquivo menor para garantir o envio."); 
+            return; 
+        }
+
+        toggleAnexos();
         const reader = new FileReader();
         reader.onload = (e) => {
-            db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, url: e.target.result, tipo: "foto", timestamp: Date.now() });
+            const m = { nick: nickAtual, timestamp: Date.now(), tipo: tipo, expirado: false };
+            if (tipo === 'foto') m.url = e.target.result;
+            else { m.data = e.target.result; m.nome = file.name; }
+            
+            db.ref(`salas/${salaAtual}/mensagens`).push(m).catch(err => {
+                alert("Erro ao enviar: O arquivo pode ser muito grande para o servidor.");
+            });
         };
         reader.readAsDataURL(file);
-        toggleAnexos();
+        input.value = "";
     }
 
-    function enviarArquivo(input) {
-        const file = input.files[0]; if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, nome: file.name, data: e.target.result, tipo: "arquivo", timestamp: Date.now() });
-        };
-        reader.readAsDataURL(file);
-        toggleAnexos();
-    }
+    function limparChat() { document.getElementById('mensagens').innerHTML = ""; toggleConfig(); }
+    function sairDaSala() { db.ref(`salas/${salaAtual}/usuarios/${nickAtual}`).remove(); localStorage.clear(); location.reload(); }
 </script>
 </body>
 </html>
