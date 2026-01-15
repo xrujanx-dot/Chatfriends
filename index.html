@@ -24,12 +24,12 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
             background: var(--bg-dark);
             overflow: hidden;
-            position: fixed;
+            position: fixed; /* Evita que a página inteira suba no iOS */
         }
 
         #app { width: 100%; max-width: 450px; height: 100%; margin: 0 auto; background: #fff; display: flex; flex-direction: column; position: relative; }
 
-        /* TELA DE LOGIN (PRESERVADA) */
+        /* LOGIN PRESERVADO */
         #login { 
             position: absolute; inset: 0; z-index: 100;
             background: var(--bg-dark);
@@ -69,23 +69,31 @@
             background: var(--gradient);
             color: white; border: none; border-radius: 16px;
             font-weight: 700; font-size: 16px; cursor: pointer;
-            box-shadow: 0 10px 20px rgba(168, 85, 247, 0.3);
         }
 
-        /* CHAT INTERFACE */
-        #chat { display: none; flex: 1; flex-direction: column; height: 100%; background: #f8fafc; }
+        /* CHAT */
+        #chat { display: none; flex: 1; flex-direction: column; height: 100%; background: #f8fafc; overflow: hidden; }
 
         #topo { 
             padding: 35px 20px 15px; background: white; 
             border-bottom: 1px solid #f1f5f9; display: flex; 
             justify-content: space-between; align-items: center;
+            flex-shrink: 0; /* Impede o topo de achatar */
         }
         .topo-info b { font-weight: 800; color: var(--bg-dark); }
         .online-status { font-size: 12px; color: #10b981; font-weight: 700; display: block; }
 
         .btn-gear { background: #f1f5f9; border: none; width: 38px; height: 38px; border-radius: 12px; cursor: pointer; font-size: 18px; }
 
-        #mensagens { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+        #mensagens { 
+            flex: 1; 
+            padding: 20px; 
+            overflow-y: auto; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px;
+            -webkit-overflow-scrolling: touch;
+        }
         
         .msg { padding: 12px 16px; border-radius: 20px; max-width: 85%; font-size: 15px; line-height: 1.5; position: relative; animation: msgAnim 0.3s ease forwards; }
         @keyframes msgAnim { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -93,7 +101,6 @@
         .msg-out { align-self: flex-start; background: white; color: #1e293b; border-bottom-left-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
         .msg-in { align-self: flex-end; background: var(--gradient); color: white; border-bottom-right-radius: 4px; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2); }
         
-        .mention { background: #fbbf24; color: #000; padding: 0 4px; border-radius: 4px; font-weight: 700; }
         .nick-msg { font-size: 10px; font-weight: 800; margin-bottom: 4px; text-transform: uppercase; opacity: 0.7; }
 
         #menu-config { 
@@ -103,20 +110,19 @@
             z-index: 110; border: 1px solid #eee; min-width: 180px;
         }
 
-        .btn-sair { color: #ef4444; font-weight: 700; border-top: 1px solid #f1f5f9; padding-top: 10px; margin-top: 5px; cursor: pointer; font-size: 13px; text-align: left; background: none; border:none; width: 100%;}
+        .btn-menu-item { background: none; border: none; padding: 8px 0; font-family: inherit; font-size: 13px; text-align: left; cursor: pointer; width: 100%; }
+        .btn-sair { color: #ef4444; font-weight: 700; border-top: 1px solid #f1f5f9; padding-top: 10px; }
 
-        #menu-anexos { 
-            position: absolute; bottom: 90px; left: 15px; background: white; 
-            border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
-            display: none; flex-direction: column; overflow: hidden; border: 1px solid #eee; z-index: 110;
+        #envio { 
+            padding: 15px; background: white; 
+            display: flex; gap: 10px; align-items: center; 
+            border-top: 1px solid #f1f5f9; 
+            padding-bottom: calc(15px + env(safe-area-inset-bottom)); /* Ajuste para notch de celulares */
+            flex-shrink: 0;
         }
-        .opt-anexo { padding: 15px 20px; border: none; background: white; display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; font-weight: 600; color: #334155; text-align: left; }
-
-        #envio { padding: 15px; background: white; display: flex; gap: 10px; align-items: center; border-top: 1px solid #f1f5f9; padding-bottom: 30px; position: relative; }
         #texto { background: #f1f5f9; border: none; flex: 1; padding: 14px 20px; border-radius: 18px; font-size: 16px; color: var(--bg-dark); outline: none; }
         .btn-action { width: 48px; height: 48px; border-radius: 16px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-        .btn-file { background: #f1f5f9; color: #64748b; }
-        .btn-send { background: var(--gradient); color: white; box-shadow: 0 8px 15px rgba(99, 102, 241, 0.2); }
+        .btn-send { background: var(--gradient); color: white; }
 
         .msg img { max-width: 100%; border-radius: 12px; margin-top: 8px; }
     </style>
@@ -144,19 +150,19 @@
             <button class="btn-gear" onclick="toggleConfig()">⚙️</button>
             <div id="menu-config">
                 <label style="font-size:13px; cursor:pointer;"><input type="checkbox" id="chkSom"> Ativar Som 🔊</label>
-                <button class="btn-sair" onclick="sairDaSala()">Sair da Sala 🚪</button>
+                <button class="btn-menu-item" onclick="limparChat()" style="color:#64748b; font-weight:600;">Limpar Conversa 🧹</button>
+                <button class="btn-menu-item btn-sair" onclick="sairDaSala()">Sair da Sala 🚪</button>
             </div>
         </div>
 
         <div id="mensagens"></div>
 
-        <div id="menu-anexos">
-            <button class="opt-anexo" onclick="document.getElementById('img-input').click()">🖼️ Foto</button>
-            <button class="opt-anexo" onclick="document.getElementById('file-input').click()">📄 Arquivo</button>
-        </div>
-
         <div id="envio">
-            <button class="btn-action btn-file" onclick="toggleAnexos()">+</button>
+            <button class="btn-action" style="background:#f1f5f9; color:#64748b;" onclick="toggleAnexos()">+</button>
+            <div id="menu-anexos" style="position: absolute; bottom: 90px; left: 15px; background: white; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: none; flex-direction: column; z-index: 110; border:1px solid #eee;">
+                <button onclick="document.getElementById('img-input').click()" style="padding:15px; border:none; background:none; font-weight:600; font-size:14px; text-align:left;">🖼️ Foto</button>
+                <button onclick="document.getElementById('file-input').click()" style="padding:15px; border:none; background:none; font-weight:600; font-size:14px; text-align:left;">📄 Arquivo</button>
+            </div>
             <input type="file" id="img-input" accept="image/*" style="display:none" onchange="processarFoto(this)">
             <input type="file" id="file-input" style="display:none" onchange="enviarArquivo(this)">
             <input id="texto" type="text" autocomplete="off" placeholder="Sua mensagem..." onkeydown="if(event.key==='Enter'){ event.preventDefault(); enviarTexto(); }">
@@ -177,6 +183,14 @@
     let salaAtual, nickAtual, entrarTime;
     const notifySound = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
 
+    // SOLUÇÃO PARA O TECLADO MOBILE:
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', () => {
+            document.body.style.height = window.visualViewport.height + 'px';
+            scrollChat();
+        });
+    }
+
     window.onload = () => {
         const savedNick = localStorage.getItem('swiftly_nick');
         const savedSala = localStorage.getItem('swiftly_sala');
@@ -186,6 +200,11 @@
             entrar();
         }
     };
+
+    function scrollChat() {
+        const m = document.getElementById('mensagens');
+        m.scrollTop = m.scrollHeight;
+    }
 
     function toggleConfig() {
         const m = document.getElementById('menu-config');
@@ -197,24 +216,13 @@
         m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
     }
 
-    function limparNick(str) {
-        return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "");
-    }
-
     function entrar() {
-        let rawNick = document.getElementById('nick').value.trim();
-        nickAtual = limparNick(rawNick);
+        nickAtual = document.getElementById('nick').value.trim();
         salaAtual = document.getElementById('sala').value.trim().toLowerCase();
-        
         if (!nickAtual || !salaAtual) return;
-
         localStorage.setItem('swiftly_nick', nickAtual);
         localStorage.setItem('swiftly_sala', salaAtual);
-
         entrarTime = Date.now();
-        db.ref(`salas/${salaAtual}/usuarios/${nickAtual}`).set(true);
-        db.ref(`salas/${salaAtual}/usuarios/${nickAtual}`).onDisconnect().remove();
-
         document.getElementById('login').style.display = "none";
         document.getElementById('chat').style.display = "flex";
         document.getElementById('nomeSala').innerText = salaAtual;
@@ -222,11 +230,13 @@
     }
 
     function sairDaSala() {
-        localStorage.removeItem('swiftly_nick');
-        localStorage.removeItem('swiftly_sala');
-        db.ref(`salas/${salaAtual}/usuarios/${nickAtual}`).remove().then(() => {
-            location.reload();
-        });
+        localStorage.clear();
+        location.reload();
+    }
+
+    function limparChat() {
+        document.getElementById('mensagens').innerHTML = "";
+        toggleConfig();
     }
 
     function iniciarLogica() {
@@ -237,14 +247,8 @@
         db.ref(`salas/${salaAtual}/mensagens`).orderByChild("timestamp").startAt(entrarTime).on("child_added", s => {
             const m = s.val();
             renderizarMensagem(m, s.key);
+            scrollChat();
             if (m.nick !== nickAtual && document.getElementById('chkSom').checked) notifySound.play().catch(()=>{});
-        });
-
-        db.ref(`salas/${salaAtual}/mensagens`).on("child_changed", s => {
-            if (s.val().expirado) {
-                const cont = document.getElementById(`cont-${s.key}`);
-                if(cont) cont.innerHTML = `<small style="opacity:0.6">Conteúdo expirado</small>`;
-            }
         });
     }
 
@@ -252,61 +256,27 @@
         const isMinha = m.nick === nickAtual;
         const div = document.createElement("div");
         div.className = `msg ${isMinha ? 'msg-in' : 'msg-out'}`;
-        
-        let texto = (m.texto || "").replace(/@(\w+)/g, '<span class="mention">@$1</span>');
-        let html = `<div class="nick-msg">${m.nick}</div><div id="cont-${key}">`;
-
-        if (m.expirado) html += `<small style="opacity:0.6">Conteúdo expirado</small>`;
-        else if (m.tipo === "foto") {
-            html += `<img src="${m.url}"><span style="font-size:8px; display:block; text-align:right; margin-top:4px;">Expirando em 1m...</span>`;
-            if (isMinha) agendarExpiracao(key);
-        } else if (m.tipo === "arquivo") {
-            html += `<div style="background:rgba(0,0,0,0.05); padding:10px; border-radius:10px;">📄 ${m.nome}</div><span style="font-size:8px; display:block; text-align:right; margin-top:4px;">Expirando em 1m...</span>`;
-            if (isMinha) agendarExpiracao(key);
-        } else html += texto;
-
-        div.innerHTML = html + `</div>`;
+        div.innerHTML = `<div class="nick-msg">${m.nick}</div><div id="cont-${key}">${m.tipo==='foto'?'<img src="'+m.url+'">':m.texto}</div>`;
         document.getElementById('mensagens').appendChild(div);
-        document.getElementById('mensagens').scrollTop = document.getElementById('mensagens').scrollHeight;
-    }
-
-    function agendarExpiracao(key) {
-        setTimeout(() => db.ref(`salas/${salaAtual}/mensagens/${key}`).update({ expirado: true, url: null, data: null }), 60000);
     }
 
     function enviarTexto() {
         const input = document.getElementById('texto');
         if (!input.value.trim()) return;
-        
         db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, texto: input.value, tipo: "texto", timestamp: Date.now() });
         input.value = "";
-        
-        // CORREÇÃO: Mantém o teclado aberto no celular
         input.focus();
+        scrollChat();
     }
 
     function processarFoto(input) {
         const file = input.files[0]; if (!file) return;
-        toggleAnexos();
         const reader = new FileReader();
         reader.onload = (e) => {
-            db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, url: e.target.result, tipo: "foto", timestamp: Date.now(), expirado: false });
+            db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, url: e.target.result, tipo: "foto", timestamp: Date.now() });
         };
         reader.readAsDataURL(file);
-        input.value = "";
-        document.getElementById('texto').focus(); // Mantém foco após anexo
-    }
-
-    function enviarArquivo(input) {
-        const file = input.files[0]; if (!file) return;
         toggleAnexos();
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, nome: file.name, data: e.target.result, tipo: "arquivo", timestamp: Date.now(), expirado: false });
-        };
-        reader.readAsDataURL(file);
-        input.value = "";
-        document.getElementById('texto').focus(); // Mantém foco após anexo
     }
 </script>
 </body>
