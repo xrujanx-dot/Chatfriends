@@ -181,7 +181,6 @@
     let salaAtual, nickAtual, entrarTime;
     const notifySound = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
 
-    // CORES PARA OS NICKS
     function gerarCorNick(str) {
         let hash = 0;
         for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
@@ -236,9 +235,7 @@
         localStorage.setItem('swiftly_sala', salaAtual);
         entrarTime = Date.now();
 
-        // Envia mensagem de sistema: "Entrou na sala"
         db.ref(`salas/${salaAtual}/mensagens`).push({ tipo: "sistema", texto: `${nickAtual} entrou na sala`, timestamp: Date.now() });
-
         db.ref(`salas/${salaAtual}/usuarios/${nickAtual}`).set(true);
         db.ref(`salas/${salaAtual}/usuarios/${nickAtual}`).onDisconnect().remove();
 
@@ -267,6 +264,19 @@
                 if(cont) cont.innerHTML = `<small style="opacity:0.6">⚠️ Expirado</small>`;
             }
         });
+
+        // VERIFICAÇÃO CONTÍNUA DE EXPIRAÇÃO (Qualquer um que estiver na sala limpa o que passou do tempo)
+        setInterval(() => {
+            const agora = Date.now();
+            db.ref(`salas/${salaAtual}/mensagens`).once('value', snapshot => {
+                snapshot.forEach(child => {
+                    const m = child.val();
+                    if (m.timestamp_expira && m.timestamp_expira < agora && !m.expirado) {
+                        db.ref(`salas/${salaAtual}/mensagens/${child.key}`).update({ expirado: true, url: null, data: null });
+                    }
+                });
+            });
+        }, 5000); 
     }
 
     function renderizarMensagem(m, key) {
@@ -283,7 +293,6 @@
         const div = document.createElement("div");
         div.className = `msg ${isMinha ? 'msg-in' : 'msg-out'}`;
         
-        // COR DO NICK DINÂMICA (se for minha mensagem no tema roxo, o nick fica branco por contraste, se for dos outros, ganha cor)
         const corNick = isMinha ? "#fff" : gerarCorNick(m.nick);
         let html = `<div class="nick-msg"><span style="color:${corNick}">${m.nick}</span> <span class="hora-msg">${m.hora || ''}</span></div><div id="cont-${key}">`;
 
@@ -291,11 +300,9 @@
             html += `<small style="opacity:0.6">⚠️ Expirado</small>`;
         } else if (m.tipo === "foto") {
             const extension = m.formato || 'jpg';
-            html += `<img src="${m.url}"><a href="${m.url}" download="swiftly_${Date.now()}.${extension}" class="btn-download">📥 Baixar .${extension.toUpperCase()}</a><span class="exp-aviso">Apaga em 1m...</span>`;
-            if (isMinha) agendarExpiracao(key);
+            html += `<img src="${m.url}"><a href="${m.url}" download="swiftly_${Date.now()}.${extension}" class="btn-download">📥 Baixar .${extension.toUpperCase()}</a><span class="exp-aviso">Expira em breve...</span>`;
         } else if (m.tipo === "arquivo") {
-            html += `<a href="${m.data}" download="${m.nome}" class="file-box">📄 <b>${m.nome}</b></a><span class="exp-aviso">Apaga em 1m...</span>`;
-            if (isMinha) agendarExpiracao(key);
+            html += `<a href="${m.data}" download="${m.nome}" class="file-box">📄 <b>${m.nome}</b></a><span class="exp-aviso">Expira em breve...</span>`;
         } else {
             html += m.texto;
         }
@@ -303,10 +310,6 @@
         div.innerHTML = html + `</div>`;
         document.getElementById('mensagens').appendChild(div);
         scrollChat();
-    }
-
-    function agendarExpiracao(key) {
-        setTimeout(() => { db.ref(`salas/${salaAtual}/mensagens/${key}`).update({ expirado: true, url: null, data: null }); }, 60000);
     }
 
     function enviarTexto() {
@@ -340,14 +343,22 @@
         const file = input.files[0];
         if (!file) return;
         toggleAnexos();
+        const expiraEm = Date.now() + 60000; // Define o fim da vida: Agora + 60 segundos
+
         if (tipo === 'foto') {
             redimensionarImagem(file, (base64, ext) => {
-                db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, url: base64, tipo: "foto", formato: ext, timestamp: Date.now(), expirado: false, hora: obterHora() });
+                db.ref(`salas/${salaAtual}/mensagens`).push({ 
+                    nick: nickAtual, url: base64, tipo: "foto", formato: ext, 
+                    timestamp: Date.now(), timestamp_expira: expiraEm, expirado: false, hora: obterHora() 
+                });
             });
         } else {
             const reader = new FileReader();
             reader.onload = (e) => {
-                db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, data: e.target.result, nome: file.name, tipo: "arquivo", timestamp: Date.now(), expirado: false, hora: obterHora() });
+                db.ref(`salas/${salaAtual}/mensagens`).push({ 
+                    nick: nickAtual, data: e.target.result, nome: file.name, tipo: "arquivo", 
+                    timestamp: Date.now(), timestamp_expira: expiraEm, expirado: false, hora: obterHora() 
+                });
             };
             reader.readAsDataURL(file);
         }
