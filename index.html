@@ -137,7 +137,7 @@
             <button class="btn-action" style="background:#f1f5f9; color:#64748b;" onclick="toggleAnexos()">+</button>
             <div id="menu-anexos" style="position: absolute; bottom: 90px; left: 15px; background: white; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: none; flex-direction: column; z-index: 110; border:1px solid #eee;">
                 <button onclick="document.getElementById('img-input').click()" style="padding:15px; border:none; background:none; font-weight:600; font-size:14px; text-align:left; cursor:pointer;">🖼️ Foto (Até 10MB)</button>
-                <button onclick="document.getElementById('file-input').click()" style="padding:15px; border:none; background:none; font-weight:600; font-size:14px; text-align:left; cursor:pointer;">📄 Arquivo (2MB)</button>
+                <button onclick="document.getElementById('file-input').click()" style="padding:15px; border:none; background:none; font-weight:600; font-size:14px; text-align:left; cursor:pointer;">📄 Arquivo (Até 2MB)</button>
             </div>
             <input type="file" id="img-input" accept="image/*" style="display:none" onchange="processarAnexo(this, 'foto')">
             <input type="file" id="file-input" style="display:none" onchange="processarAnexo(this, 'arquivo')">
@@ -298,3 +298,4 @@
 </script>
 </body>
 </html>
+
