@@ -24,12 +24,12 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
             background: var(--bg-dark);
             overflow: hidden;
-            position: fixed; /* Evita que a página inteira suba no iOS */
+            position: fixed;
         }
 
         #app { width: 100%; max-width: 450px; height: 100%; margin: 0 auto; background: #fff; display: flex; flex-direction: column; position: relative; }
 
-        /* LOGIN PRESERVADO */
+        /* TELA DE LOGIN */
         #login { 
             position: absolute; inset: 0; z-index: 100;
             background: var(--bg-dark);
@@ -78,7 +78,7 @@
             padding: 35px 20px 15px; background: white; 
             border-bottom: 1px solid #f1f5f9; display: flex; 
             justify-content: space-between; align-items: center;
-            flex-shrink: 0; /* Impede o topo de achatar */
+            flex-shrink: 0;
         }
         .topo-info b { font-weight: 800; color: var(--bg-dark); }
         .online-status { font-size: 12px; color: #10b981; font-weight: 700; display: block; }
@@ -117,7 +117,7 @@
             padding: 15px; background: white; 
             display: flex; gap: 10px; align-items: center; 
             border-top: 1px solid #f1f5f9; 
-            padding-bottom: calc(15px + env(safe-area-inset-bottom)); /* Ajuste para notch de celulares */
+            padding-bottom: calc(15px + env(safe-area-inset-bottom)); 
             flex-shrink: 0;
         }
         #texto { background: #f1f5f9; border: none; flex: 1; padding: 14px 20px; border-radius: 18px; font-size: 16px; color: var(--bg-dark); outline: none; }
@@ -183,7 +183,7 @@
     let salaAtual, nickAtual, entrarTime;
     const notifySound = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
 
-    // SOLUÇÃO PARA O TECLADO MOBILE:
+    // AJUSTE DE VIEWPORT PARA TECLADO MOBILE
     if (window.visualViewport) {
         window.visualViewport.addEventListener('resize', () => {
             document.body.style.height = window.visualViewport.height + 'px';
@@ -216,13 +216,25 @@
         m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
     }
 
+    function limparNick(str) {
+        return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "");
+    }
+
     function entrar() {
-        nickAtual = document.getElementById('nick').value.trim();
+        nickAtual = limparNick(document.getElementById('nick').value.trim());
         salaAtual = document.getElementById('sala').value.trim().toLowerCase();
         if (!nickAtual || !salaAtual) return;
+
         localStorage.setItem('swiftly_nick', nickAtual);
         localStorage.setItem('swiftly_sala', salaAtual);
+
         entrarTime = Date.now();
+        
+        // CORREÇÃO DE ONLINE: Garante registro imediato e limpeza ao sair
+        const userRef = db.ref(`salas/${salaAtual}/usuarios/${nickAtual}`);
+        userRef.set(true);
+        userRef.onDisconnect().remove();
+
         document.getElementById('login').style.display = "none";
         document.getElementById('chat').style.display = "flex";
         document.getElementById('nomeSala').innerText = salaAtual;
@@ -230,8 +242,10 @@
     }
 
     function sairDaSala() {
-        localStorage.clear();
-        location.reload();
+        db.ref(`salas/${salaAtual}/usuarios/${nickAtual}`).remove().then(() => {
+            localStorage.clear();
+            location.reload();
+        });
     }
 
     function limparChat() {
@@ -240,10 +254,13 @@
     }
 
     function iniciarLogica() {
+        // Contador de Online em tempo real
         db.ref(`salas/${salaAtual}/usuarios`).on("value", s => {
-            document.getElementById('contagem').innerText = `● ${s.numChildren()} online`;
+            const count = s.numChildren() || 0;
+            document.getElementById('contagem').innerText = `● ${count} online`;
         });
 
+        // Monitor de mensagens
         db.ref(`salas/${salaAtual}/mensagens`).orderByChild("timestamp").startAt(entrarTime).on("child_added", s => {
             const m = s.val();
             renderizarMensagem(m, s.key);
@@ -256,7 +273,10 @@
         const isMinha = m.nick === nickAtual;
         const div = document.createElement("div");
         div.className = `msg ${isMinha ? 'msg-in' : 'msg-out'}`;
-        div.innerHTML = `<div class="nick-msg">${m.nick}</div><div id="cont-${key}">${m.tipo==='foto'?'<img src="'+m.url+'">':m.texto}</div>`;
+        
+        let conteudo = m.tipo === 'foto' ? `<img src="${m.url}">` : m.texto;
+        div.innerHTML = `<div class="nick-msg">${m.nick}</div><div id="cont-${key}">${conteudo}</div>`;
+        
         document.getElementById('mensagens').appendChild(div);
     }
 
@@ -274,6 +294,16 @@
         const reader = new FileReader();
         reader.onload = (e) => {
             db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, url: e.target.result, tipo: "foto", timestamp: Date.now() });
+        };
+        reader.readAsDataURL(file);
+        toggleAnexos();
+    }
+
+    function enviarArquivo(input) {
+        const file = input.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, nome: file.name, data: e.target.result, tipo: "arquivo", timestamp: Date.now() });
         };
         reader.readAsDataURL(file);
         toggleAnexos();
