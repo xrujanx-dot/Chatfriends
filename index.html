@@ -45,24 +45,28 @@
         #chat { display: none; flex: 1; flex-direction: column; height: 100%; background: #f8fafc; }
         #topo { padding: 10px 15px; background: white; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
         
-        /* BALÕES COMPACTOS */
         #mensagens { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
-        .msg { padding: 8px 12px; border-radius: 14px; max-width: 85%; font-size: 14px; position: relative; line-height: 1.3; }
-        .msg-out { align-self: flex-start; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .msg-in { align-self: flex-end; background: var(--gradient); color: white; }
-        .msg small { font-size: 9px; opacity: 0.7; font-weight: 800; }
+        
+        .msg { padding: 4px 12px; border-radius: 14px; max-width: 85%; font-size: 14px; position: relative; line-height: 1.4; }
+        .msg-out { align-self: flex-start; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-bottom-left-radius: 4px; }
+        .msg-in { align-self: flex-end; background: var(--gradient); color: white; border-bottom-right-radius: 4px; }
+        .msg small { font-size: 9px; opacity: 0.7; font-weight: 800; display: block; margin-bottom: 1px; }
 
-        #envio { padding: 8px; background: white; display: flex; gap: 6px; border-top: 1px solid #f1f5f9; align-items: center; }
-        #texto { background: #f1f5f9; border: none; flex: 1; padding: 10px 14px; border-radius: 20px; color: #000; font-size: 14px; outline: none; }
+        #envio { padding: 10px; background: white; display: flex; gap: 8px; border-top: 1px solid #f1f5f9; align-items: center; }
+        #texto { background: #f1f5f9; border: none; flex: 1; height: 42px; padding: 0 15px; border-radius: 12px; color: #000; font-size: 15px; outline: none; }
 
-        .btn-action { width: 38px; height: 38px; border-radius: 10px; border: none; cursor: pointer; font-size: 18px; }
+        .btn-action { width: 42px; height: 42px; border-radius: 12px; border: none; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+        .btn-send { background: var(--gradient); color: white; font-size: 16px; }
 
         #modalQR { position: absolute; inset: 0; background: rgba(0,0,0,0.8); z-index: 200; display: none; align-items: center; justify-content: center; }
-        .qr-card { background: white; padding: 20px; border-radius: 20px; text-align: center; }
+        .qr-card { background: white; padding: 25px; border-radius: 24px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
         
+        /* QR Code Estiloso */
+        #qrcode-canvas { background: white; padding: 10px; border-radius: 15px; margin: 15px 0; }
+
         #menu-config, #menu-anexos { position: absolute; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 12px; display: none; flex-direction: column; z-index: 110; border: 1px solid #eee; }
         #menu-config { top: 55px; right: 15px; min-width: 150px; }
-        #menu-anexos { bottom: 60px; left: 10px; }
+        #menu-anexos { bottom: 65px; left: 10px; }
         #menu-config button, #menu-anexos button { border: none; background: none; padding: 12px; text-align: left; font-size: 13px; font-weight: 600; cursor: pointer; }
 
         .expira-aviso { font-size: 9px; opacity: 0.6; display: block; margin-top: 4px; }
@@ -111,11 +115,23 @@
             <input type="file" id="img-input" accept="image/*" style="display:none" onchange="processarAnexo(this, 'foto')">
             <input type="file" id="file-input" style="display:none" onchange="processarAnexo(this, 'arquivo')">
             <input id="texto" type="text" placeholder="Mensagem..." onkeydown="if(event.key==='Enter') enviarTexto()">
-            <button class="btn-main" style="width:45px; padding:0" onclick="enviarTexto()">➤</button>
+            <button class="btn-action btn-send" onclick="enviarTexto()">➤</button>
         </div>
     </div>
 
-    <div id="modalQR" onclick="this.style.display='none'"><div class="qr-card" onclick="event.stopPropagation()"><h3>Convidar</h3><div id="qrcode"></div><button class="btn-sec" style="color:#000; width:100%" onclick="document.getElementById('modalQR').style.display='none'">Fechar</button></div></div>
+    <div id="modalQR" onclick="this.style.display='none'">
+        <div class="qr-card" onclick="event.stopPropagation()">
+            <div class="raio-container" style="width:50px; height:50px; font-size:24px; margin: 0 auto 10px;">⚡</div>
+            <h3 style="margin:0; font-weight:800;">Convidar amigos</h3>
+            <p style="font-size:12px; color:#64748b; margin-top:5px;">Escaneie para entrar na sala</p>
+            
+            <div id="qrcode-wrapper">
+                <canvas id="qrcode-canvas"></canvas>
+            </div>
+
+            <button class="btn-sec" style="color:#000; width:100%; margin-top:10px;" onclick="document.getElementById('modalQR').style.display='none'">Fechar</button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -128,6 +144,7 @@
 
     const db = firebase.database();
     let salaAtual, nickAtual, jaMudouNome = false;
+    let entrarTime = Date.now();
 
     function gerarId6() { return Math.random().toString(36).substring(2, 8).toUpperCase(); }
 
@@ -165,7 +182,6 @@
     function iniciarChat() {
         const refMsgs = db.ref(`salas/${salaAtual}/mensagens`);
         const refUsers = db.ref(`salas/${salaAtual}/usuarios/${nickAtual}`);
-        
         refUsers.set(true);
         refUsers.onDisconnect().remove();
 
@@ -179,7 +195,6 @@
             document.getElementById('contagem').innerText = `● ${s.val() ? Object.keys(s.val()).length : 0} online`;
         });
 
-        // MONITOR DE EXPIRAÇÃO (1 MINUTO) E INATIVIDADE (5 MINUTOS)
         setInterval(() => {
             const agora = Date.now();
             refMsgs.once('value', snap => {
@@ -191,13 +206,10 @@
                         refMsgs.child(child.key).update({expirado: true, url: null, data: null});
                     }
                 });
-                // Se ficar 5 min sem nada, limpa a sala e sai
                 if(agora - ultimaAtividade > 300000) { db.ref(`salas/${salaAtual}`).remove(); location.reload(); }
             });
         }, 5000);
     }
-
-    const entrarTime = Date.now();
 
     function renderizarMensagem(m, key) {
         const isMinha = m.nick === nickAtual;
@@ -208,7 +220,7 @@
         if(m.expirado) {
             html += "🖼️ <i>Expirado</i>";
         } else if(m.tipo === "foto") {
-            html += `<img src="${m.url}" style="width:100%; border-radius:8px;"><br><a href="${m.url}" download="img" class="btn-download">Baixar</a><span class="expira-aviso">expira em breve</span>`;
+            html += `<img src="${m.url}" style="width:100%; border-radius:8px; margin-top:2px;"><br><a href="${m.url}" download="img" class="btn-download">Baixar</a><span class="expira-aviso">expira em breve</span>`;
         } else if(m.tipo === "arquivo") {
             html += `📄 <b>${m.nome}</b><br><a href="${m.data}" download="${m.nome}" class="btn-download">Baixar</a><span class="expira-aviso">expira em breve</span>`;
         } else {
@@ -261,17 +273,65 @@
 
     function mudarNomeSala() {
         if(jaMudouNome) return;
-        let n = prompt("Novo nome (6 carac):").toUpperCase().substring(0,6);
-        if(n) { db.ref(`salas/${salaAtual}/mensagens`).push({nick: "Sistema", texto: `Sala mudou para ${n}`, timestamp: Date.now()}); salaAtual = n; document.getElementById('labelSala').innerText = "Sala: " + n; jaMudouNome = true; }
+        let n = prompt("Novo nome (6 carac):");
+        if(n) { 
+            n = n.toUpperCase().substring(0,6);
+            db.ref(`salas/${salaAtual}/mensagens`).push({nick: "Sistema", texto: `Sala mudou para ${n}`, timestamp: Date.now()}); 
+            salaAtual = n; 
+            document.getElementById('labelSala').innerText = "Sala: " + n; 
+            jaMudouNome = true; 
+        }
     }
 
     function toggleConfig() { const m = document.getElementById('menu-config'); m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; }
     function toggleAnexos() { const m = document.getElementById('menu-anexos'); m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; }
     function sairDaSala() { location.reload(); }
+
+    // FUNÇÃO QR CODE ESTILOSO COM RAIO NO MEIO
     function exibirQR() {
-        document.getElementById('qrcode').innerHTML = "";
-        new QRCode(document.getElementById("qrcode"), { text: window.location.href + "?sala=" + salaAtual, width: 150, height: 150 });
-        document.getElementById('modalQR').style.display = "flex";
+        const canvas = document.getElementById("qrcode-canvas");
+        const url = window.location.href.split('?')[0] + "?sala=" + salaAtual;
+        
+        // Limpar canvas anterior
+        const container = document.getElementById("qrcode-wrapper");
+        container.innerHTML = '<div id="temp-qr" style="display:none"></div><canvas id="qrcode-canvas"></canvas>';
+        
+        // Gerar QR invisível primeiro para extrair os dados
+        new QRCode(document.getElementById("temp-qr"), {
+            text: url,
+            width: 200,
+            height: 200,
+            colorDark: "#0f172a",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H // Nível Alto para permitir o logo no meio
+        });
+
+        setTimeout(() => {
+            const qrImg = document.querySelector("#temp-qr img");
+            const finalCanvas = document.getElementById("qrcode-canvas");
+            const ctx = finalCanvas.getContext("2d");
+            
+            finalCanvas.width = 200;
+            finalCanvas.height = 200;
+
+            // Desenhar o QR Code no Canvas
+            ctx.drawImage(qrImg, 0, 0);
+
+            // Desenhar um fundo branco circular no meio
+            ctx.beginPath();
+            ctx.arc(100, 100, 25, 0, Math.PI * 2);
+            ctx.fillStyle = "white";
+            ctx.fill();
+
+            // Desenhar o emoji de raio no meio
+            ctx.font = "24px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText("⚡", 100, 103); // Ajuste leve na altura
+
+            document.getElementById('modalQR').style.display = "flex";
+            toggleConfig();
+        }, 100);
     }
 </script>
 </body>
