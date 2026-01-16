@@ -27,32 +27,30 @@
 
         #app { width: 100%; max-width: 450px; height: 100%; margin: 0 auto; background: #fff; display: flex; flex-direction: column; position: relative; overflow: hidden; }
 
-        #login { position: absolute; inset: 0; z-index: 100; background: var(--bg-dark); display: flex; flex-direction: column; align-items: center; padding: 30px; text-align: center; overflow-y: auto; }
+        #login, #login-convite { position: absolute; inset: 0; z-index: 100; background: var(--bg-dark); display: flex; flex-direction: column; align-items: center; padding: 30px; text-align: center; overflow-y: auto; }
+        #login-convite { display: none; z-index: 101; }
 
         .raio-container { background: var(--gradient); width: 70px; height: 70px; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 35px; color: white; margin-bottom: 15px; transform: rotate(-10deg); flex-shrink: 0; }
 
-        #login h1 { color: white; margin: 0; font-weight: 800; font-size: 28px; }
-        #login p { color: #94a3b8; font-size: 14px; margin-bottom: 25px; }
+        h1 { color: white; margin: 0; font-weight: 800; font-size: 28px; }
+        p { color: #94a3b8; font-size: 14px; margin-bottom: 25px; }
 
         .card-auth { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 20px; width: 100%; display: flex; flex-direction: column; gap: 12px; }
 
         input { width: 100%; padding: 14px 18px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; font-size: 15px; outline: none; }
 
         .btn-main { background: var(--gradient); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 700; cursor: pointer; }
-
         .btn-sec { background: rgba(255,255,255,0.1); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 13px; }
 
         #chat { display: none; flex: 1; flex-direction: column; height: 100%; background: #f8fafc; }
         #topo { padding: 10px 15px; background: white; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
         
         #mensagens { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
-        
         .msg { padding: 4px 12px; border-radius: 14px; max-width: 85%; font-size: 14px; position: relative; line-height: 1.4; }
         .msg-out { align-self: flex-start; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-bottom-left-radius: 4px; }
         .msg-in { align-self: flex-end; background: var(--gradient); color: white; border-bottom-right-radius: 4px; }
         .msg small { font-size: 9px; opacity: 0.7; font-weight: 800; display: block; margin-bottom: 1px; }
 
-        /* Estilo da Imagem tipo WhatsApp */
         .img-chat { max-width: 200px; max-height: 250px; border-radius: 8px; margin-top: 4px; display: block; object-fit: cover; }
 
         #envio { padding: 10px; background: white; display: flex; gap: 8px; border-top: 1px solid #f1f5f9; align-items: center; }
@@ -68,13 +66,12 @@
         #menu-config, #menu-anexos { position: absolute; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 12px; display: none; flex-direction: column; z-index: 110; border: 1px solid #eee; }
         #menu-config { top: 55px; right: 15px; min-width: 150px; }
         #menu-anexos { bottom: 65px; left: 10px; }
-        #menu-config button, #menu-anexos button { border: none; background: none; padding: 12px; text-align: left; font-size: 13px; font-weight: 600; cursor: pointer; }
-
+        
         .expira-aviso { font-size: 9px; opacity: 0.6; display: block; margin-top: 4px; }
         .btn-download { color: inherit; text-decoration: underline; font-size: 10px; margin-top: 5px; display: inline-block; cursor: pointer; }
     </style>
 </head>
-<body>
+<body onload="verificarConvite()">
 
 <div id="app">
     <div id="login">
@@ -94,6 +91,20 @@
         </div>
     </div>
 
+    <div id="login-convite">
+        <div class="raio-container">⚡</div>
+        <h1 id="label-sala-convite">Sala: ---</h1>
+        <p>Você foi convidado para esta conversa.</p>
+        <div class="card-auth">
+            <input id="nick-convite" placeholder="Seu apelido" maxlength="12">
+            <div id="box-senha-convite" style="display:none">
+                <input id="senha-convite" type="password" placeholder="Senha da sala" maxlength="8">
+            </div>
+            <button class="btn-main" onclick="confirmarEntradaConvite()">Entrar no Chat</button>
+            <button class="btn-sec" style="opacity:0.6" onclick="location.href=location.pathname">Voltar ao Início</button>
+        </div>
+    </div>
+
     <div id="chat">
         <div id="topo">
             <div><b id="labelSala">Sala: ---</b><br><span id="contagem" style="font-size:10px; color:#10b981">● 0 online</span></div>
@@ -108,8 +119,8 @@
         <div id="envio">
             <button class="btn-action" style="background:#f1f5f9; color:#64748b;" onclick="toggleAnexos()">+</button>
             <div id="menu-anexos">
-                <button onclick="document.getElementById('img-input').click()">🖼️ Foto (10MB)</button>
-                <button onclick="document.getElementById('file-input').click()">📄 Arquivo (2MB)</button>
+                <button onclick="document.getElementById('img-input').click()" style="border:none; background:none; padding:12px; text-align:left; font-size:13px; font-weight:600; cursor:pointer;">🖼️ Foto</button>
+                <button onclick="document.getElementById('file-input').click()" style="border:none; background:none; padding:12px; text-align:left; font-size:13px; font-weight:600; cursor:pointer;">📄 Arquivo</button>
             </div>
             <input type="file" id="img-input" accept="image/*" style="display:none" onchange="processarAnexo(this, 'foto')">
             <input type="file" id="file-input" style="display:none" onchange="processarAnexo(this, 'arquivo')">
@@ -139,6 +150,48 @@
     const db = firebase.database();
     let salaAtual, nickAtual, jaMudouNome = false;
     let entrarTime = Date.now();
+
+    // LÓGICA DE CONVITE QR CODE
+    function verificarConvite() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const salaConvite = urlParams.get('sala');
+
+        if (salaConvite) {
+            salaAtual = salaConvite.toUpperCase();
+            document.getElementById('login').style.display = 'none';
+            document.getElementById('login-convite').style.display = 'flex';
+            document.getElementById('label-sala-convite').innerText = "Sala: " + salaAtual;
+
+            // Verifica se a sala tem senha
+            db.ref(`salas/${salaAtual}/config/senha`).once('value', snap => {
+                if (snap.val()) {
+                    document.getElementById('box-senha-convite').style.display = 'block';
+                }
+            });
+        }
+    }
+
+    function confirmarEntradaConvite() {
+        const nick = document.getElementById('nick-convite').value.trim();
+        const senhaInput = document.getElementById('senha-convite').value.trim();
+        
+        if (!nick) return alert("Digite um apelido");
+
+        db.ref(`salas/${salaAtual}/config/senha`).once('value', snap => {
+            const senhaReal = snap.val();
+            if (senhaReal) {
+                if (senhaInput === senhaReal) {
+                    conectar(nick, salaAtual);
+                    document.getElementById('login-convite').style.display = 'none';
+                } else {
+                    alert("Senha incorreta!");
+                }
+            } else {
+                conectar(nick, salaAtual);
+                document.getElementById('login-convite').style.display = 'none';
+            }
+        });
+    }
 
     function gerarId6() { return Math.random().toString(36).substring(2, 8).toUpperCase(); }
 
@@ -174,12 +227,9 @@
     }
 
     function iniciarChat() {
-        // Desconecta ouvintes anteriores se existirem (para evitar travamento na troca de nome)
         db.ref(`salas`).off();
-        
         const refMsgs = db.ref(`salas/${salaAtual}/mensagens`);
         const refUsers = db.ref(`salas/${salaAtual}/usuarios/${nickAtual}`);
-        
         refUsers.set(true);
         refUsers.onDisconnect().remove();
 
@@ -193,7 +243,6 @@
             document.getElementById('contagem').innerText = `● ${s.val() ? Object.keys(s.val()).length : 0} online`;
         });
 
-        // Loop de verificação de expiração e inatividade
         setInterval(() => {
             const agora = Date.now();
             refMsgs.once('value', snap => {
@@ -201,12 +250,10 @@
                 snap.forEach(child => {
                     const m = child.val();
                     if(m.timestamp > ultimaAtividade) ultimaAtividade = m.timestamp;
-                    // Expira mídias em 1 minuto
                     if(m.expiraEm && m.expiraEm < agora && !m.expirado) {
                         refMsgs.child(child.key).update({expirado: true, url: null, data: null});
                     }
                 });
-                // Inatividade de 5 min
                 if(agora - ultimaAtividade > 300000) { db.ref(`salas/${salaAtual}`).remove(); location.reload(); }
             });
         }, 5000);
@@ -218,17 +265,11 @@
         div.className = `msg ${isMinha ? 'msg-in' : 'msg-out'}`;
         let html = `<small>${m.nick}</small><div id="cont-${key}">`;
         
-        if(m.expirado) {
-            html += "🖼️ <i>Expirado</i>";
-        } else if(m.tipo === "foto") {
-            html += `<img src="${m.url}" class="img-chat"><a href="${m.url}" download="img" class="btn-download">Baixar</a><span class="expira-aviso">expira em breve</span>`;
-        } else if(m.tipo === "arquivo") {
-            html += `📄 <b>${m.nome}</b><br><a href="${m.data}" download="${m.nome}" class="btn-download">Baixar</a><span class="expira-aviso">expira em breve</span>`;
-        } else if(m.tipo === "sistema") {
-            html = `<center><small style="color:#94a3b8">${m.texto}</small></center>`;
-        } else {
-            html += m.texto;
-        }
+        if(m.expirado) { html += "🖼️ <i>Expirado</i>"; } 
+        else if(m.tipo === "foto") { html += `<img src="${m.url}" class="img-chat"><a href="${m.url}" download="img" class="btn-download">Baixar</a><span class="expira-aviso">expira em breve</span>`; } 
+        else if(m.tipo === "arquivo") { html += `📄 <b>${m.nome}</b><br><a href="${m.data}" download="${m.nome}" class="btn-download">Baixar</a><span class="expira-aviso">expira em breve</span>`; } 
+        else if(m.tipo === "sistema") { html = `<center><small style="color:#94a3b8">${m.texto}</small></center>`; } 
+        else { html += m.texto; }
         
         div.innerHTML = html + (m.tipo !== "sistema" ? "</div>" : "");
         document.getElementById('mensagens').appendChild(div);
@@ -280,14 +321,7 @@
         if(n) { 
             n = n.toUpperCase().substring(0,6).replace(/[^A-Z0-9]/g, "");
             db.ref(`salas/${salaAtual}/mensagens`).push({tipo: "sistema", texto: `${nickAtual} mudou o nome para ${n}`, timestamp: Date.now()}); 
-            
-            // ESSENCIAL: Atualiza o caminho e reinicia os ouvintes
-            setTimeout(() => {
-                salaAtual = n;
-                document.getElementById('labelSala').innerText = "Sala: " + n; 
-                jaMudouNome = true;
-                iniciarChat(); 
-            }, 500);
+            setTimeout(() => { salaAtual = n; document.getElementById('labelSala').innerText = "Sala: " + n; jaMudouNome = true; iniciarChat(); }, 500);
         }
     }
 
