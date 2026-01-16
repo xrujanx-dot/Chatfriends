@@ -42,7 +42,6 @@
         .btn-main { background: var(--gradient); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 15px; }
         .btn-sec { background: rgba(255,255,255,0.1); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 14px; }
 
-        /* Grupos de inputs escondidos */
         .input-group { display: none; flex-direction: column; gap: 10px; margin-top: 5px; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -70,11 +69,11 @@
         #menu-config, #menu-anexos { position: absolute; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 12px; display: none; flex-direction: column; z-index: 110; border: 1px solid #eee; }
         #menu-config { top: 55px; right: 15px; min-width: 170px; }
         #menu-anexos { bottom: 65px; left: 10px; }
-        /* Ícones maiores no menu */
         #menu-config button, #menu-anexos button { border: none; background: none; padding: 14px; text-align: left; font-size: 15px; font-weight: 600; cursor: pointer; }
         
         .expira-aviso { font-size: 9px; opacity: 0.6; display: block; margin-top: 4px; }
-        .btn-download { color: inherit; text-decoration: underline; font-size: 10px; margin-top: 5px; display: inline-block; cursor: pointer; }
+        /* Link de download corrigido visualmente */
+        .btn-download { color: inherit; text-decoration: underline; font-size: 11px; margin-top: 8px; display: inline-block; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body onload="verificarConvite()">
@@ -90,7 +89,6 @@
                 <input id="nick-rapido" placeholder="Seu apelido" maxlength="12">
                 <button class="btn-sec" onclick="entrarAutomatico()">Entrar Agora</button>
             </div>
-
             <button class="btn-main" onclick="showGroup('group-criar')">🔒 Criar Chat</button>
             <div id="group-criar" class="input-group">
                 <input id="nick-criar" placeholder="Seu apelido" maxlength="12">
@@ -98,14 +96,11 @@
                 <input id="nova-senha" type="password" placeholder="Senha (Opcional)" maxlength="8">
                 <button class="btn-sec" onclick="criarSalaPrivada()">Criar e Entrar</button>
             </div>
-
             <button class="btn-main" onclick="showGroup('group-entrar')">🔑 Entrar em Chat</button>
             <div id="group-entrar" class="input-group">
                 <input id="nick-entrar" placeholder="Seu apelido" maxlength="12">
                 <input id="sala-manual" placeholder="Código da sala" maxlength="6">
-                <div id="box-senha-manual" style="display:none">
-                    <input id="senha-manual" type="password" placeholder="Senha da sala">
-                </div>
+                <div id="box-senha-manual" style="display:none"><input id="senha-manual" type="password" placeholder="Senha da sala"></div>
                 <button class="btn-sec" onclick="entrarManual()">Verificar e Entrar</button>
             </div>
         </div>
@@ -117,9 +112,7 @@
         <p>Você foi convidado para esta conversa.</p>
         <div class="card-auth">
             <input id="nick-convite" placeholder="Seu apelido" maxlength="12">
-            <div id="box-senha-convite" style="display:none">
-                <input id="senha-convite" type="password" placeholder="Senha da sala" maxlength="8">
-            </div>
+            <div id="box-senha-convite" style="display:none"><input id="senha-convite" type="password" placeholder="Senha da sala" maxlength="8"></div>
             <button class="btn-main" onclick="confirmarEntradaConvite()">Entrar no Chat</button>
             <button class="btn-sec" style="opacity:0.6" onclick="sairDaSala()">Voltar ao Início</button>
         </div>
@@ -171,7 +164,6 @@
     let salaAtual, nickAtual, jaMudouNome = false;
     let entrarTime = Date.now();
 
-    // Lógica do Menu Inicial
     function showGroup(id) {
         document.querySelectorAll('.input-group').forEach(g => g.style.display = 'none');
         document.getElementById(id).style.display = 'flex';
@@ -272,16 +264,36 @@
         }, 5000);
     }
 
+    // CORREÇÃO DO DOWNLOAD DE ARQUIVO
+    function baixarArquivoSeguro(base64, nome) {
+        const link = document.createElement("a");
+        link.href = base64;
+        link.download = nome;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
     function renderizarMensagem(m, key) {
         const isMinha = m.nick === nickAtual;
         const div = document.createElement("div");
         div.className = `msg ${isMinha ? 'msg-in' : 'msg-out'}`;
         let html = `<small>${m.nick}</small><div id="cont-${key}">`;
-        if(m.expirado) html += "🖼️ <i>Expirado</i>";
-        else if(m.tipo === "foto") html += `<img src="${m.url}" class="img-chat"><a href="${m.url}" download="img" class="btn-download">Baixar</a><span class="expira-aviso">expira em breve</span>`;
-        else if(m.tipo === "arquivo") html += `📄 <b>${m.nome}</b><br><a href="${m.data}" download="${m.nome}" class="btn-download">Baixar</a><span class="expira-aviso">expira em breve</span>`;
-        else if(m.tipo === "sistema") html = `<center><small style="color:#94a3b8">${m.texto}</small></center>`;
-        else html += m.texto;
+        
+        if(m.expirado) {
+            html += "🖼️ <i>Expirado</i>";
+        } else if(m.tipo === "foto") {
+            // Para fotos, o download via atributo direto costuma funcionar bem
+            html += `<img src="${m.url}" class="img-chat"><a href="${m.url}" download="Swiftly_IMG.jpg" class="btn-download">Baixar Foto</a><span class="expira-aviso">expira em breve</span>`;
+        } else if(m.tipo === "arquivo") {
+            // Para arquivos, usamos uma função JS para garantir o disparo do download
+            html += `📄 <b>${m.nome}</b><br><span class="btn-download" onclick="baixarArquivoSeguro('${m.data}', '${m.nome}')">Baixar Arquivo</span><span class="expira-aviso">expira em breve</span>`;
+        } else if(m.tipo === "sistema") {
+            html = `<center><small style="color:#94a3b8">${m.texto}</small></center>`;
+        } else {
+            html += m.texto;
+        }
+        
         div.innerHTML = html + (m.tipo !== "sistema" ? "</div>" : "");
         document.getElementById('mensagens').appendChild(div);
         document.getElementById('mensagens').scrollTop = document.getElementById('mensagens').scrollHeight;
@@ -329,11 +341,7 @@
 
     function toggleConfig() { const m = document.getElementById('menu-config'); m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; }
     function toggleAnexos() { const m = document.getElementById('menu-anexos'); m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; }
-    
-    function sairDaSala() {
-        // Limpa a URL e recarrega para voltar ao menu inicial limpo
-        window.location.href = window.location.pathname;
-    }
+    function sairDaSala() { window.location.href = window.location.pathname; }
     
     function exibirQR() {
         const container = document.getElementById("qrcode-wrapper");
