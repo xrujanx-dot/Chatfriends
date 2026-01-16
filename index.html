@@ -39,8 +39,12 @@
 
         input { width: 100%; padding: 14px 18px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; font-size: 15px; outline: none; }
 
-        .btn-main { background: var(--gradient); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 700; cursor: pointer; }
-        .btn-sec { background: rgba(255,255,255,0.1); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 13px; }
+        .btn-main { background: var(--gradient); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 15px; }
+        .btn-sec { background: rgba(255,255,255,0.1); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 14px; }
+
+        /* Grupos de inputs escondidos */
+        .input-group { display: none; flex-direction: column; gap: 10px; margin-top: 5px; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
         #chat { display: none; flex: 1; flex-direction: column; height: 100%; background: #f8fafc; }
         #topo { padding: 10px 15px; background: white; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
@@ -64,8 +68,10 @@
         #qrcode-canvas { background: white; padding: 10px; border-radius: 15px; margin: 15px 0; }
 
         #menu-config, #menu-anexos { position: absolute; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 12px; display: none; flex-direction: column; z-index: 110; border: 1px solid #eee; }
-        #menu-config { top: 55px; right: 15px; min-width: 150px; }
+        #menu-config { top: 55px; right: 15px; min-width: 170px; }
         #menu-anexos { bottom: 65px; left: 10px; }
+        /* Ícones maiores no menu */
+        #menu-config button, #menu-anexos button { border: none; background: none; padding: 14px; text-align: left; font-size: 15px; font-weight: 600; cursor: pointer; }
         
         .expira-aviso { font-size: 9px; opacity: 0.6; display: block; margin-top: 4px; }
         .btn-download { color: inherit; text-decoration: underline; font-size: 10px; margin-top: 5px; display: inline-block; cursor: pointer; }
@@ -78,15 +84,29 @@
         <div class="raio-container">⚡</div>
         <h1>Swiftly</h1>
         <p>Segurança e velocidade em cada mensagem.</p>
-        <div class="card-auth">
-            <input id="nick" placeholder="Seu apelido" maxlength="12">
-            <button class="btn-main" onclick="entrarAutomatico()">⚡ Chat Rápido </button>
-            <input id="nova-sala" placeholder="Nome da sala" maxlength="6">
-            <input id="nova-senha" type="password" placeholder="Senha (Opcional)" maxlength="8">
-            <button class="btn-sec" onclick="criarSalaPrivada()">🔒 Criar Sala</button>
-            <div style="display:flex; gap:5px;">
-                <input id="sala-entrar" placeholder="Entrar em sala" maxlength="6">
-                <button class="btn-sec" style="width:70px" onclick="entrarManual()">Ir</button>
+        <div class="card-auth" id="main-menu">
+            <button class="btn-main" onclick="showGroup('group-rapido')">⚡ Chat Rápido</button>
+            <div id="group-rapido" class="input-group">
+                <input id="nick-rapido" placeholder="Seu apelido" maxlength="12">
+                <button class="btn-sec" onclick="entrarAutomatico()">Entrar Agora</button>
+            </div>
+
+            <button class="btn-main" onclick="showGroup('group-criar')">🔒 Criar Chat</button>
+            <div id="group-criar" class="input-group">
+                <input id="nick-criar" placeholder="Seu apelido" maxlength="12">
+                <input id="nova-sala" placeholder="Nome da sala (Opcional)" maxlength="6">
+                <input id="nova-senha" type="password" placeholder="Senha (Opcional)" maxlength="8">
+                <button class="btn-sec" onclick="criarSalaPrivada()">Criar e Entrar</button>
+            </div>
+
+            <button class="btn-main" onclick="showGroup('group-entrar')">🔑 Entrar em Chat</button>
+            <div id="group-entrar" class="input-group">
+                <input id="nick-entrar" placeholder="Seu apelido" maxlength="12">
+                <input id="sala-manual" placeholder="Código da sala" maxlength="6">
+                <div id="box-senha-manual" style="display:none">
+                    <input id="senha-manual" type="password" placeholder="Senha da sala">
+                </div>
+                <button class="btn-sec" onclick="entrarManual()">Verificar e Entrar</button>
             </div>
         </div>
     </div>
@@ -101,7 +121,7 @@
                 <input id="senha-convite" type="password" placeholder="Senha da sala" maxlength="8">
             </div>
             <button class="btn-main" onclick="confirmarEntradaConvite()">Entrar no Chat</button>
-            <button class="btn-sec" style="opacity:0.6" onclick="location.href=location.pathname">Voltar ao Início</button>
+            <button class="btn-sec" style="opacity:0.6" onclick="sairDaSala()">Voltar ao Início</button>
         </div>
     </div>
 
@@ -119,8 +139,8 @@
         <div id="envio">
             <button class="btn-action" style="background:#f1f5f9; color:#64748b;" onclick="toggleAnexos()">+</button>
             <div id="menu-anexos">
-                <button onclick="document.getElementById('img-input').click()" style="border:none; background:none; padding:12px; text-align:left; font-size:13px; font-weight:600; cursor:pointer;">🖼️ Foto</button>
-                <button onclick="document.getElementById('file-input').click()" style="border:none; background:none; padding:12px; text-align:left; font-size:13px; font-weight:600; cursor:pointer;">📄 Arquivo</button>
+                <button onclick="document.getElementById('img-input').click()">🖼️ Foto</button>
+                <button onclick="document.getElementById('file-input').click()">📄 Arquivo</button>
             </div>
             <input type="file" id="img-input" accept="image/*" style="display:none" onchange="processarAnexo(this, 'foto')">
             <input type="file" id="file-input" style="display:none" onchange="processarAnexo(this, 'arquivo')">
@@ -151,22 +171,22 @@
     let salaAtual, nickAtual, jaMudouNome = false;
     let entrarTime = Date.now();
 
-    // LÓGICA DE CONVITE QR CODE
+    // Lógica do Menu Inicial
+    function showGroup(id) {
+        document.querySelectorAll('.input-group').forEach(g => g.style.display = 'none');
+        document.getElementById(id).style.display = 'flex';
+    }
+
     function verificarConvite() {
         const urlParams = new URLSearchParams(window.location.search);
         const salaConvite = urlParams.get('sala');
-
         if (salaConvite) {
             salaAtual = salaConvite.toUpperCase();
             document.getElementById('login').style.display = 'none';
             document.getElementById('login-convite').style.display = 'flex';
             document.getElementById('label-sala-convite').innerText = "Sala: " + salaAtual;
-
-            // Verifica se a sala tem senha
             db.ref(`salas/${salaAtual}/config/senha`).once('value', snap => {
-                if (snap.val()) {
-                    document.getElementById('box-senha-convite').style.display = 'block';
-                }
+                if (snap.val()) document.getElementById('box-senha-convite').style.display = 'block';
             });
         }
     }
@@ -174,47 +194,43 @@
     function confirmarEntradaConvite() {
         const nick = document.getElementById('nick-convite').value.trim();
         const senhaInput = document.getElementById('senha-convite').value.trim();
-        
         if (!nick) return alert("Digite um apelido");
-
         db.ref(`salas/${salaAtual}/config/senha`).once('value', snap => {
             const senhaReal = snap.val();
-            if (senhaReal) {
-                if (senhaInput === senhaReal) {
-                    conectar(nick, salaAtual);
-                    document.getElementById('login-convite').style.display = 'none';
-                } else {
-                    alert("Senha incorreta!");
-                }
-            } else {
-                conectar(nick, salaAtual);
-                document.getElementById('login-convite').style.display = 'none';
-            }
+            if (senhaReal && senhaInput !== senhaReal) return alert("Senha incorreta!");
+            conectar(nick, salaAtual);
+            document.getElementById('login-convite').style.display = 'none';
         });
     }
 
     function gerarId6() { return Math.random().toString(36).substring(2, 8).toUpperCase(); }
 
     function entrarAutomatico() {
-        const n = document.getElementById('nick').value.trim();
-        if(n) conectar(n, gerarId6()); else alert("Nick!");
+        const n = document.getElementById('nick-rapido').value.trim();
+        if(n) conectar(n, gerarId6()); else alert("Digite seu apelido!");
     }
 
     function criarSalaPrivada() {
-        const n = document.getElementById('nick').value.trim();
+        const n = document.getElementById('nick-criar').value.trim();
         let s = document.getElementById('nova-sala').value.trim().toUpperCase() || gerarId6();
         const pw = document.getElementById('nova-senha').value.trim();
-        if(n) { if(pw) db.ref(`salas/${s}/config`).set({senha:pw}); conectar(n, s); }
+        if(n) { if(pw) db.ref(`salas/${s}/config`).set({senha:pw}); conectar(n, s); } else alert("Apelido!");
     }
 
     function entrarManual() {
-        const n = document.getElementById('nick').value.trim();
-        const s = document.getElementById('sala-entrar').value.trim().toUpperCase();
-        if(!n || !s) return;
+        const n = document.getElementById('nick-entrar').value.trim();
+        const s = document.getElementById('sala-manual').value.trim().toUpperCase();
+        if(!n || !s) return alert("Preencha os campos!");
         db.ref(`salas/${s}/config/senha`).once('value', snap => {
             const pw = snap.val();
-            if(pw) { if(prompt("Senha:") === pw) conectar(n, s); else alert("Erro!"); }
-            else conectar(n, s);
+            const boxSenha = document.getElementById('box-senha-manual');
+            if(pw && boxSenha.style.display === 'none') {
+                boxSenha.style.display = 'block';
+                alert("Esta sala exige senha!");
+            } else {
+                if(pw && document.getElementById('senha-manual').value !== pw) return alert("Senha incorreta!");
+                conectar(n, s);
+            }
         });
     }
 
@@ -232,17 +248,14 @@
         const refUsers = db.ref(`salas/${salaAtual}/usuarios/${nickAtual}`);
         refUsers.set(true);
         refUsers.onDisconnect().remove();
-
         refMsgs.on("child_added", s => renderizarMensagem(s.val(), s.key));
         refMsgs.on("child_changed", s => {
             const el = document.getElementById(`cont-${s.key}`);
             if(el && s.val().expirado) el.innerHTML = "🖼️ <i>Expirado</i>";
         });
-
         db.ref(`salas/${salaAtual}/usuarios`).on("value", s => {
             document.getElementById('contagem').innerText = `● ${s.val() ? Object.keys(s.val()).length : 0} online`;
         });
-
         setInterval(() => {
             const agora = Date.now();
             refMsgs.once('value', snap => {
@@ -254,7 +267,7 @@
                         refMsgs.child(child.key).update({expirado: true, url: null, data: null});
                     }
                 });
-                if(agora - ultimaAtividade > 300000) { db.ref(`salas/${salaAtual}`).remove(); location.reload(); }
+                if(agora - ultimaAtividade > 300000) { db.ref(`salas/${salaAtual}`).remove(); sairDaSala(); }
             });
         }, 5000);
     }
@@ -264,13 +277,11 @@
         const div = document.createElement("div");
         div.className = `msg ${isMinha ? 'msg-in' : 'msg-out'}`;
         let html = `<small>${m.nick}</small><div id="cont-${key}">`;
-        
-        if(m.expirado) { html += "🖼️ <i>Expirado</i>"; } 
-        else if(m.tipo === "foto") { html += `<img src="${m.url}" class="img-chat"><a href="${m.url}" download="img" class="btn-download">Baixar</a><span class="expira-aviso">expira em breve</span>`; } 
-        else if(m.tipo === "arquivo") { html += `📄 <b>${m.nome}</b><br><a href="${m.data}" download="${m.nome}" class="btn-download">Baixar</a><span class="expira-aviso">expira em breve</span>`; } 
-        else if(m.tipo === "sistema") { html = `<center><small style="color:#94a3b8">${m.texto}</small></center>`; } 
-        else { html += m.texto; }
-        
+        if(m.expirado) html += "🖼️ <i>Expirado</i>";
+        else if(m.tipo === "foto") html += `<img src="${m.url}" class="img-chat"><a href="${m.url}" download="img" class="btn-download">Baixar</a><span class="expira-aviso">expira em breve</span>`;
+        else if(m.tipo === "arquivo") html += `📄 <b>${m.nome}</b><br><a href="${m.data}" download="${m.nome}" class="btn-download">Baixar</a><span class="expira-aviso">expira em breve</span>`;
+        else if(m.tipo === "sistema") html = `<center><small style="color:#94a3b8">${m.texto}</small></center>`;
+        else html += m.texto;
         div.innerHTML = html + (m.tipo !== "sistema" ? "</div>" : "");
         document.getElementById('mensagens').appendChild(div);
         document.getElementById('mensagens').scrollTop = document.getElementById('mensagens').scrollHeight;
@@ -284,33 +295,24 @@
     }
 
     function processarAnexo(input, tipo) {
-        const file = input.files[0];
-        if(!file) return;
-        const reader = new FileReader();
-        const expira = Date.now() + 60000;
-
+        const file = input.files[0]; if(!file) return;
+        const reader = new FileReader(); const expira = Date.now() + 60000;
         if(tipo === 'foto') {
-            const img = new Image();
-            reader.readAsDataURL(file);
+            const img = new Image(); reader.readAsDataURL(file);
             reader.onload = e => {
                 img.src = e.target.result;
                 img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    const max = 800;
-                    let w = img.width, h = img.height;
+                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+                    const max = 800; let w = img.width, h = img.height;
                     if(w > h) { if(w > max){ h *= max/w; w = max; } } else { if(h > max){ w *= max/h; h = max; } }
-                    canvas.width = w; canvas.height = h;
-                    ctx.drawImage(img, 0, 0, w, h);
+                    canvas.width = w; canvas.height = h; ctx.drawImage(img, 0, 0, w, h);
                     db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, tipo: "foto", url: canvas.toDataURL('image/jpeg', 0.6), expiraEm: expira, timestamp: Date.now() });
                 };
             };
         } else {
             if(file.size > 2100000) return alert("Max 2MB");
             reader.readAsDataURL(file);
-            reader.onload = e => {
-                db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, tipo: "arquivo", data: e.target.result, nome: file.name, expiraEm: expira, timestamp: Date.now() });
-            };
+            reader.onload = e => db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, tipo: "arquivo", data: e.target.result, nome: file.name, expiraEm: expira, timestamp: Date.now() });
         }
         input.value = ""; toggleAnexos();
     }
@@ -327,7 +329,11 @@
 
     function toggleConfig() { const m = document.getElementById('menu-config'); m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; }
     function toggleAnexos() { const m = document.getElementById('menu-anexos'); m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; }
-    function sairDaSala() { location.reload(); }
+    
+    function sairDaSala() {
+        // Limpa a URL e recarrega para voltar ao menu inicial limpo
+        window.location.href = window.location.pathname;
+    }
     
     function exibirQR() {
         const container = document.getElementById("qrcode-wrapper");
