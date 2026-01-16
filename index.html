@@ -36,7 +36,6 @@
             position: relative; overflow: hidden;
         }
 
-        /* --- LOGIN DESIGN --- */
         #login { 
             position: absolute; inset: 0; z-index: 100;
             background: var(--bg-dark);
@@ -81,7 +80,6 @@
 
         .divider { color: #475569; font-size: 11px; font-weight: 800; margin: 10px 0; }
 
-        /* --- CHAT DESIGN --- */
         #chat { display: none; flex: 1; flex-direction: column; height: 100%; background: #f8fafc; }
         #topo { padding: 12px 20px; background: white; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
         .online-status { font-size: 11px; color: #10b981; font-weight: 700; background: #f0fdf4; padding: 4px 8px; border-radius: 8px; }
@@ -94,7 +92,6 @@
         #envio { padding: 10px; background: white; display: flex; gap: 8px; border-top: 1px solid #f1f5f9; }
         #texto { background: #f1f5f9; border: none; flex: 1; padding: 12px; border-radius: 15px; color: #000; }
 
-        /* --- MODAL QR CODE --- */
         #modalQR {
             position: absolute; inset: 0; background: rgba(0,0,0,0.8);
             z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px;
@@ -120,20 +117,15 @@
         <p>Segurança e velocidade em cada mensagem.</p>
         
         <div class="card-auth">
-            <input id="nick" placeholder="Seu apelido (Ex: Leo)" maxlength="12">
-            
+            <input id="nick" placeholder="Seu apelido" maxlength="12">
             <button class="btn-main" onclick="entrarAutomatico()">⚡ Entrar no Chat Rápido</button>
-            
             <div class="divider">OU CRIAR SALA PRIVADA</div>
-            
-            <input id="nova-sala" placeholder="Nome da sala (Opcional)">
+            <input id="nova-sala" placeholder="Nome da sala (6 caracteres)" maxlength="6">
             <input id="nova-senha" type="password" placeholder="Senha (Máx 8 caracteres)" maxlength="8">
             <button class="btn-sec" onclick="criarSalaPrivada()">🔒 Criar Sala Protegida</button>
-
             <div class="divider">OU ENTRAR EM UMA</div>
-            
             <div style="display:flex; gap:5px;">
-                <input id="sala-entrar" placeholder="Nome da sala">
+                <input id="sala-entrar" placeholder="Nome da sala" maxlength="6">
                 <button class="btn-sec" style="width:70px" onclick="entrarManual()">Ir</button>
             </div>
         </div>
@@ -148,14 +140,13 @@
             <button class="btn-gear" onclick="toggleConfig()">⚙️</button>
             
             <div id="menu-config">
+                <button id="btnMudarNome" onclick="mudarNomeSala()">✏️ Mudar Nome (1 vez)</button>
                 <button onclick="exibirQR()">📱 Exibir QR Code</button>
                 <button onclick="limparChat()">🧹 Limpar Chat</button>
                 <button onclick="sairDaSala()" style="color:red">🚪 Sair</button>
             </div>
         </div>
-
         <div id="mensagens"></div>
-
         <div id="envio">
             <button class="btn-action" style="background:#f1f5f9; width:40px; border:none; border-radius:10px" onclick="toggleAnexos()">+</button>
             <div id="menu-anexos" style="position: absolute; bottom: 65px; left: 10px; background: white; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); display: none; flex-direction: column; z-index: 110;">
@@ -189,38 +180,43 @@
 
     const db = firebase.database();
     let salaAtual, nickAtual, senhaSala = null;
+    let jaMudouNome = false;
 
-    // --- LOGICA DE ENTRADA ---
+    // GERADOR DE SALA 6 CARACTERES (LETRAS E NUMEROS)
+    function gerarId6() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let res = '';
+        for (let i = 0; i < 6; i++) res += chars.charAt(Math.floor(Math.random() * chars.length));
+        return res;
+    }
 
     function entrarAutomatico() {
         const nick = document.getElementById('nick').value.trim();
         if(!nick) return alert("Digite um apelido");
-        const salaAuto = "swift_" + Math.random().toString(36).substring(2, 8);
-        conectar(nick, salaAuto);
+        conectar(nick, gerarId6());
     }
 
     function criarSalaPrivada() {
         const nick = document.getElementById('nick').value.trim();
-        let sala = document.getElementById('nova-sala').value.trim().toLowerCase();
+        let sala = document.getElementById('nova-sala').value.trim().toUpperCase();
         const senha = document.getElementById('nova-senha').value.trim();
         
         if(!nick) return alert("Digite um apelido");
-        if(!sala) sala = "room_" + Math.random().toString(36).substring(2, 8);
+        if(!sala) sala = gerarId6();
         
-        // Salva a senha no banco da sala
         if(senha) db.ref(`salas/${sala}/config`).set({ senha: senha });
         conectar(nick, sala, senha);
     }
 
     function entrarManual() {
         const nick = document.getElementById('nick').value.trim();
-        const sala = document.getElementById('sala-entrar').value.trim().toLowerCase();
+        const sala = document.getElementById('sala-entrar').value.trim().toUpperCase();
         if(!nick || !sala) return alert("Preencha nick e sala");
 
         db.ref(`salas/${sala}/config/senha`).once('value', s => {
             const senhaDB = s.val();
             if(senhaDB) {
-                const pass = prompt("Esta sala é privada. Digite a senha:");
+                const pass = prompt("Senha da sala:");
                 if(pass === senhaDB) conectar(nick, sala, pass);
                 else alert("Senha incorreta!");
             } else {
@@ -229,44 +225,51 @@
         });
     }
 
+    // FUNÇÃO PARA MUDAR NOME DA SALA (1 VEZ)
+    function mudarNomeSala() {
+        if(jaMudouNome) return alert("Você já alterou o nome nesta sessão.");
+        
+        let novoNome = prompt("Novo nome da sala (Máx 6 caracteres):");
+        if(!novoNome) return;
+        
+        novoNome = novoNome.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+        
+        if(novoNome.length > 6) return alert("Máximo 6 caracteres!");
+        if(novoNome.length < 1) return alert("Nome inválido!");
+
+        // Registra no sistema e avisa no chat
+        db.ref(`salas/${salaAtual}/mensagens`).push({ 
+            tipo: "sistema", 
+            texto: `${nickAtual} alterou o nome da sala para: ${novoNome}`, 
+            timestamp: Date.now() 
+        });
+
+        salaAtual = novoNome;
+        document.getElementById('labelSala').innerText = "Sala: " + salaAtual;
+        jaMudouNome = true;
+        document.getElementById('btnMudarNome').style.opacity = "0.5";
+        document.getElementById('btnMudarNome').innerText = "✅ Nome Alterado";
+        toggleConfig();
+    }
+
     function conectar(nick, sala, senha = null) {
         nickAtual = nick.replace(/[^a-zA-Z0-9]/g, "");
         salaAtual = sala;
         senhaSala = senha;
-
         document.getElementById('login').style.display = "none";
         document.getElementById('chat').style.display = "flex";
         document.getElementById('labelSala').innerText = "Sala: " + salaAtual;
-        
         iniciarChat();
     }
-
-    // --- FUNÇÕES DO QR CODE ---
 
     function exibirQR() {
         document.getElementById('qrcode').innerHTML = "";
         const urlConvite = window.location.href.split('?')[0] + "?sala=" + salaAtual;
-        
-        new QRCode(document.getElementById("qrcode"), {
-            text: urlConvite,
-            width: 180,
-            height: 180
-        });
-        
+        new QRCode(document.getElementById("qrcode"), { text: urlConvite, width: 180, height: 180 });
         document.getElementById('qr-info').innerText = "Sala: " + salaAtual;
         document.getElementById('modalQR').style.display = "flex";
         toggleConfig();
     }
-
-    // Verificar se entrou via link/QR Code
-    window.onload = () => {
-        const params = new URLSearchParams(window.location.search);
-        if(params.has('sala')) {
-            document.getElementById('sala-entrar').value = params.get('sala');
-        }
-    };
-
-    // --- ESTRUTURA ORIGINAL DO CHAT (Preservada e Adaptada) ---
 
     function iniciarChat() {
         const entrarTime = Date.now();
@@ -293,11 +296,18 @@
     }
 
     function renderizarMensagem(m, key) {
-        const isMinha = m.nick === nickAtual;
-        const div = document.createElement("div");
-        div.className = `msg ${isMinha ? 'msg-in' : 'msg-out'}`;
-        div.innerHTML = `<small><b>${m.nick}</b></small><br>${m.texto || (m.tipo === 'foto' ? '<img src="'+m.url+'" style="width:100%">' : '📄 Arquivo')}`;
-        document.getElementById('mensagens').appendChild(div);
+        if(m.tipo === "sistema") {
+            const divSis = document.createElement("div");
+            divSis.style.cssText = "align-self:center; font-size:10px; color:#94a3b8; background:rgba(0,0,0,0.05); padding:4px 12px; border-radius:10px; margin:5px 0;";
+            divSis.innerText = m.texto;
+            document.getElementById('mensagens').appendChild(divSis);
+        } else {
+            const isMinha = m.nick === nickAtual;
+            const div = document.createElement("div");
+            div.className = `msg ${isMinha ? 'msg-in' : 'msg-out'}`;
+            div.innerHTML = `<small><b>${m.nick}</b></small><br>${m.texto}`;
+            document.getElementById('mensagens').appendChild(div);
+        }
         document.getElementById('mensagens').scrollTop = document.getElementById('mensagens').scrollHeight;
     }
 
@@ -313,8 +323,6 @@
 
     function sairDaSala() { location.reload(); }
     function limparChat() { document.getElementById('mensagens').innerHTML = ""; toggleConfig(); }
-
-    // (As funções de anexo/imagem originais podem ser coladas aqui conforme o código anterior)
 </script>
 </body>
 </html>
