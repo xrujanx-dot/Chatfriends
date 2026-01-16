@@ -72,11 +72,10 @@
         #menu-config button, #menu-anexos button { border: none; background: none; padding: 14px; text-align: left; font-size: 15px; font-weight: 600; cursor: pointer; }
         
         .expira-aviso { font-size: 9px; opacity: 0.6; display: block; margin-top: 4px; }
-        /* Link de download corrigido visualmente */
         .btn-download { color: inherit; text-decoration: underline; font-size: 11px; margin-top: 8px; display: inline-block; cursor: pointer; font-weight: bold; }
     </style>
 </head>
-<body onload="verificarConvite()">
+<body onload="inicializarApp()">
 
 <div id="app">
     <div id="login">
@@ -121,7 +120,7 @@
     <div id="chat">
         <div id="topo">
             <div><b id="labelSala">Sala: ---</b><br><span id="contagem" style="font-size:10px; color:#10b981">● 0 online</span></div>
-            <button class="btn-action" style="background:#f1f5f9" onclick="toggleConfig()">⚙️</button>
+            <button class="btn-action" style="background:#f1f5f9" onclick="event.stopPropagation(); toggleConfig()">⚙️</button>
             <div id="menu-config">
                 <button id="btnMudarNome" onclick="mudarNomeSala()">✏️ Mudar Nome (1x)</button>
                 <button onclick="exibirQR()">📱 QR Code</button>
@@ -130,7 +129,7 @@
         </div>
         <div id="mensagens"></div>
         <div id="envio">
-            <button class="btn-action" style="background:#f1f5f9; color:#64748b;" onclick="toggleAnexos()">+</button>
+            <button class="btn-action" style="background:#f1f5f9; color:#64748b;" onclick="event.stopPropagation(); toggleAnexos()">+</button>
             <div id="menu-anexos">
                 <button onclick="document.getElementById('img-input').click()">🖼️ Foto</button>
                 <button onclick="document.getElementById('file-input').click()">📄 Arquivo</button>
@@ -163,6 +162,25 @@
     const db = firebase.database();
     let salaAtual, nickAtual, jaMudouNome = false;
     let entrarTime = Date.now();
+
+    function inicializarApp() {
+        // Clicar fora fecha menus
+        document.addEventListener('click', () => {
+            document.getElementById('menu-config').style.display = 'none';
+            document.getElementById('menu-anexos').style.display = 'none';
+        });
+
+        // Persistência de Sessão
+        const savedNick = sessionStorage.getItem('swiftly_nick');
+        const savedSala = sessionStorage.getItem('swiftly_sala');
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        if (savedNick && savedSala && !urlParams.get('sala')) {
+            conectar(savedNick, savedSala);
+        } else {
+            verificarConvite();
+        }
+    }
 
     function showGroup(id) {
         document.querySelectorAll('.input-group').forEach(g => g.style.display = 'none');
@@ -228,6 +246,8 @@
 
     function conectar(n, s) {
         nickAtual = n; salaAtual = s;
+        sessionStorage.setItem('swiftly_nick', n);
+        sessionStorage.setItem('swiftly_sala', s);
         document.getElementById('login').style.display = "none";
         document.getElementById('chat').style.display = "flex";
         document.getElementById('labelSala').innerText = "Sala: " + s;
@@ -264,13 +284,10 @@
         }, 5000);
     }
 
-    // CORREÇÃO DO DOWNLOAD DE ARQUIVO
     function baixarArquivoSeguro(base64, nome) {
         const link = document.createElement("a");
-        link.href = base64;
-        link.download = nome;
-        document.body.appendChild(link);
-        link.click();
+        link.href = base64; link.download = nome;
+        document.body.appendChild(link); link.click();
         document.body.removeChild(link);
     }
 
@@ -279,21 +296,11 @@
         const div = document.createElement("div");
         div.className = `msg ${isMinha ? 'msg-in' : 'msg-out'}`;
         let html = `<small>${m.nick}</small><div id="cont-${key}">`;
-        
-        if(m.expirado) {
-            html += "🖼️ <i>Expirado</i>";
-        } else if(m.tipo === "foto") {
-            // Para fotos, o download via atributo direto costuma funcionar bem
-            html += `<img src="${m.url}" class="img-chat"><a href="${m.url}" download="Swiftly_IMG.jpg" class="btn-download">Baixar Foto</a><span class="expira-aviso">expira em breve</span>`;
-        } else if(m.tipo === "arquivo") {
-            // Para arquivos, usamos uma função JS para garantir o disparo do download
-            html += `📄 <b>${m.nome}</b><br><span class="btn-download" onclick="baixarArquivoSeguro('${m.data}', '${m.nome}')">Baixar Arquivo</span><span class="expira-aviso">expira em breve</span>`;
-        } else if(m.tipo === "sistema") {
-            html = `<center><small style="color:#94a3b8">${m.texto}</small></center>`;
-        } else {
-            html += m.texto;
-        }
-        
+        if(m.expirado) html += "🖼️ <i>Expirado</i>";
+        else if(m.tipo === "foto") html += `<img src="${m.url}" class="img-chat"><a href="${m.url}" download="Swiftly_IMG.jpg" class="btn-download">Baixar Foto</a><span class="expira-aviso">expira em breve</span>`;
+        else if(m.tipo === "arquivo") html += `📄 <b>${m.nome}</b><br><span class="btn-download" onclick="baixarArquivoSeguro('${m.data}', '${m.nome}')">Baixar Arquivo</span><span class="expira-aviso">expira em breve</span>`;
+        else if(m.tipo === "sistema") html = `<center><small style="color:#94a3b8">${m.texto}</small></center>`;
+        else html += m.texto;
         div.innerHTML = html + (m.tipo !== "sistema" ? "</div>" : "");
         document.getElementById('mensagens').appendChild(div);
         document.getElementById('mensagens').scrollTop = document.getElementById('mensagens').scrollHeight;
@@ -326,7 +333,7 @@
             reader.readAsDataURL(file);
             reader.onload = e => db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, tipo: "arquivo", data: e.target.result, nome: file.name, expiraEm: expira, timestamp: Date.now() });
         }
-        input.value = ""; toggleAnexos();
+        input.value = "";
     }
 
     function mudarNomeSala() {
@@ -335,13 +342,22 @@
         if(n) { 
             n = n.toUpperCase().substring(0,6).replace(/[^A-Z0-9]/g, "");
             db.ref(`salas/${salaAtual}/mensagens`).push({tipo: "sistema", texto: `${nickAtual} mudou o nome para ${n}`, timestamp: Date.now()}); 
-            setTimeout(() => { salaAtual = n; document.getElementById('labelSala').innerText = "Sala: " + n; jaMudouNome = true; iniciarChat(); }, 500);
+            setTimeout(() => { salaAtual = n; sessionStorage.setItem('swiftly_sala', n); document.getElementById('labelSala').innerText = "Sala: " + n; jaMudouNome = true; iniciarChat(); }, 500);
         }
     }
 
-    function toggleConfig() { const m = document.getElementById('menu-config'); m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; }
-    function toggleAnexos() { const m = document.getElementById('menu-anexos'); m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; }
-    function sairDaSala() { window.location.href = window.location.pathname; }
+    function toggleConfig() { 
+        const m = document.getElementById('menu-config'); 
+        m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; 
+    }
+    function toggleAnexos() { 
+        const m = document.getElementById('menu-anexos'); 
+        m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; 
+    }
+    function sairDaSala() { 
+        sessionStorage.clear();
+        window.location.href = window.location.pathname; 
+    }
     
     function exibirQR() {
         const container = document.getElementById("qrcode-wrapper");
@@ -356,7 +372,6 @@
             ctx.beginPath(); ctx.arc(100, 100, 25, 0, Math.PI * 2); ctx.fillStyle = "white"; ctx.fill();
             ctx.font = "24px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("⚡", 100, 103);
             document.getElementById('modalQR').style.display = "flex";
-            toggleConfig();
         }, 150);
     }
 </script>
