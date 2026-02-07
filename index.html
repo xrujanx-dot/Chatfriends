@@ -100,7 +100,7 @@
                 <input id="nick-entrar" placeholder="Seu apelido" maxlength="12">
                 <input id="sala-manual" placeholder="Código da sala" maxlength="6">
                 <div id="box-senha-manual" style="display:none"><input id="senha-manual" type="password" placeholder="Senha da sala"></div>
-                <button class="btn-sec" onclick="entrarManual()">Verificar e Entrar</button>
+                <button class="btn-sec" onclick="entrar()">Verificar e Entrar</button>
             </div>
         </div>
     </div>
@@ -181,7 +181,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         
         if (savedNick && savedSala && !urlParams.get('sala')) {
-            conectar(savedNick, savedSala, false); // false = não avisar entrada no F5
+            conectar(savedNick, savedSala, false);
         } else {
             verificarConvite();
         }
@@ -229,21 +229,35 @@
         const n = document.getElementById('nick-criar').value.trim();
         let s = document.getElementById('nova-sala').value.trim().toUpperCase() || gerarId6();
         const pw = document.getElementById('nova-senha').value.trim();
-        if(n) { if(pw) db.ref(`salas/${s}/config`).set({senha:pw}); conectar(n, s, true); } else alert("Apelido!");
+        if(n) { 
+            if(pw) db.ref(`salas/${s}/config`).set({senha:pw}); 
+            else db.ref(`salas/${s}/config`).set({criadaEm: Date.now()}); // Cria a sala mesmo sem senha
+            conectar(n, s, true); 
+        } else alert("Apelido!");
     }
 
-    function entrarManual() {
+    // FUNÇÃO ATUALIZADA: Verifica se a sala existe antes de entrar
+    function entrar() {
         const n = document.getElementById('nick-entrar').value.trim();
         const s = document.getElementById('sala-manual').value.trim().toUpperCase();
+        
         if(!n || !s) return alert("Preencha os campos!");
-        db.ref(`salas/${s}/config/senha`).once('value', snap => {
-            const pw = snap.val();
+
+        db.ref(`salas/${s}`).once('value', snap => {
+            if (!snap.exists()) {
+                return alert("Esta sala não existe ou foi encerrada por inatividade.");
+            }
+
+            const pw = snap.child('config/senha').val();
             const boxSenha = document.getElementById('box-senha-manual');
+            
             if(pw && boxSenha.style.display === 'none') {
                 boxSenha.style.display = 'block';
                 alert("Esta sala exige senha!");
             } else {
-                if(pw && document.getElementById('senha-manual').value !== pw) return alert("Senha incorreta!");
+                if(pw && document.getElementById('senha-manual').value !== pw) {
+                    return alert("Senha incorreta!");
+                }
                 conectar(n, s, true);
             }
         });
@@ -281,6 +295,7 @@
             document.getElementById('contagem').innerText = `● ${s.val() ? Object.keys(s.val()).length : 0} online`;
         });
 
+        // Limpeza automática: se ficar 5 minutos sem mensagens, apaga a sala completa
         setInterval(() => {
             const agora = Date.now();
             refMsgs.once('value', snap => {
@@ -292,7 +307,10 @@
                         refMsgs.child(child.key).update({expirado: true, url: null, data: null});
                     }
                 });
-                if(agora - ultimaAtividade > 300000) { db.ref(`salas/${salaAtual}`).remove(); sairDaSala(); }
+                if(agora - ultimaAtividade > 300000) { 
+                    db.ref(`salas/${salaAtual}`).remove(); 
+                    sairDaSala(); 
+                }
             });
         }, 5000);
     }
