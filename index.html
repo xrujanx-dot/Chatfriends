@@ -36,6 +36,8 @@
         .msg-out { align-self: flex-start; background: white; border-bottom-left-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .msg-in { align-self: flex-end; background: var(--gradient); color: white; border-bottom-right-radius: 4px; }
         .msg small { font-size: 10px; font-weight: 800; display: block; margin-bottom: 2px; }
+        .msg img { max-width: 100%; border-radius: 8px; margin-top: 5px; }
+        .expired { font-style: italic; opacity: 0.7; color: #64748b !important; }
         
         audio { height: 35px; width: 180px; filter: grayscale(1); }
         .confirm-audio { display: flex; gap: 5px; margin-top: 5px; }
@@ -45,13 +47,13 @@
         #texto { background: #f1f5f9; border: none; flex: 1; height: 42px; padding: 0 15px; border-radius: 12px; outline: none; }
         .btn-action { width: 42px; height: 42px; border-radius: 12px; border: none; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
         
-        .recording { background: #ef4444 !important; color: white !important; animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
-        
-        #menu-config, #menu-anexos { position: absolute; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 12px; display: none; flex-direction: column; z-index: 110; min-width: 150px; }
+        #menu-config, #menu-anexos { position: absolute; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 12px; display: none; flex-direction: column; z-index: 110; min-width: 180px; overflow: hidden; }
         #menu-config { top: 55px; right: 15px; }
         #menu-anexos { bottom: 65px; left: 10px; }
-        #menu-config button, #menu-anexos button { border: none; background: none; padding: 12px; text-align: left; font-weight: 600; cursor: pointer; }
+        #menu-config button, #menu-anexos button { border: none; background: none; padding: 14px; text-align: left; font-weight: 600; cursor: pointer; border-bottom: 1px solid #f1f5f9; }
+        
+        .rec-active { color: #ef4444 !important; animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0.5; } }
 
         #modalQR { position: absolute; inset: 0; background: rgba(0,0,0,0.85); z-index: 300; display: none; align-items: center; justify-content: center; }
         .qr-card { background: white; padding: 20px; border-radius: 20px; text-align: center; }
@@ -70,15 +72,13 @@
                 <input id="nick-rapido" placeholder="Seu apelido" onkeydown="if(event.key==='Enter') entrarAutomatico()">
                 <button class="btn-sec" onclick="entrarAutomatico()">Entrar Agora</button>
             </div>
-
             <button class="btn-main" onclick="showGroup('group-criar')">🔒 Criar Chat</button>
             <div id="group-criar" class="input-group">
                 <input id="nick-criar" placeholder="Seu apelido">
-                <input id="nova-sala" placeholder="Nome da sala (Opcional)">
-                <input id="nova-senha" type="password" placeholder="Senha (Opcional)" onkeydown="if(event.key==='Enter') criarSalaPrivada()">
+                <input id="nova-sala" placeholder="Nome da sala">
+                <input id="nova-senha" type="password" placeholder="Senha" onkeydown="if(event.key==='Enter') criarSalaPrivada()">
                 <button class="btn-sec" onclick="criarSalaPrivada()">Criar</button>
             </div>
-
             <button class="btn-main" onclick="showGroup('group-entrar')">🔑 Entrar em Chat</button>
             <div id="group-entrar" class="input-group">
                 <input id="nick-entrar" placeholder="Seu apelido">
@@ -110,13 +110,14 @@
         <div id="envio">
             <button class="btn-action" onclick="toggleAnexos()">+</button>
             <div id="menu-anexos">
-                <button onclick="document.getElementById('file-input').click()">📁 Documento / Foto</button>
-                <input type="file" id="file-input" style="display:none" onchange="enviarArquivo(this)">
+                <button onclick="document.getElementById('file-input').click()">🖼️ Enviar Foto (10MB)</button>
+                <button onclick="document.getElementById('doc-input').click()">📁 Documento (2MB)</button>
+                <button id="btn-mic-plus" onmousedown="startRecording()" onmouseup="stopRecording()" ontouchstart="startRecording()" ontouchend="stopRecording()">🎤 Gravar Áudio <span id="timer-rec">00:00</span></button>
+                <input type="file" id="file-input" style="display:none" accept="image/*" onchange="processarFoto(this)">
+                <input type="file" id="doc-input" style="display:none" onchange="processarDocumento(this)">
             </div>
             
-            <button id="btn-mic" class="btn-action" onmousedown="startRecording()" onmouseup="stopRecording()" ontouchstart="startRecording()" ontouchend="stopRecording()">🎤</button>
             <button id="burn-btn" class="btn-action" onclick="toggleBurn()">🔥</button>
-            
             <input id="texto" placeholder="Mensagem..." onkeydown="if(event.key==='Enter') enviarTexto()" oninput="handleTyping()">
             <button class="btn-action" style="background:var(--gradient); color:white" onclick="enviarTexto()">➤</button>
         </div>
@@ -133,7 +134,7 @@
 <script>
     firebase.initializeApp({ apiKey: "AIzaSyCkkkHhydC92yB5N364Ula4-aM2LUlSmG4", authDomain: "ponte-virtual-rujan.firebaseapp.com", databaseURL: "https://ponte-virtual-rujan-default-rtdb.firebaseio.com", projectId: "ponte-virtual-rujan" });
     const db = firebase.database(); const auth = firebase.auth();
-    let salaAtual, nickAtual, senhaSala = "", isBurn = false, mediaRecorder, audioChunks = [], timerRec, segundosRec = 0, ultimaMsgTime = 0, errosSenha = 0;
+    let salaAtual, nickAtual, isBurn = false, mediaRecorder, audioChunks = [], timerInterval, segundosRec = 0, ultimaMsgTime = 0, errosSenha = 0;
 
     function showGroup(id) { document.querySelectorAll('.input-group').forEach(g => g.style.display = 'none'); document.getElementById(id).style.display = 'flex'; }
     function toggleConfig() { const m = document.getElementById('menu-config'); m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; }
@@ -149,18 +150,15 @@
         setTimeout(() => db.ref(`salas/${salaAtual}/typing/${auth.currentUser.uid}`).remove(), 2000);
     }
 
-    // --- LÓGICA DE ENTRADA RESTAURADA ---
     function entrarNoChat() {
         const n = document.getElementById('nick-entrar').value;
         const s = document.getElementById('sala-manual').value.toUpperCase();
         if(!n || !s) return;
-
         db.ref(`salas/${s}`).once('value', snap => {
             if(!snap.exists()) { alert("Sala inexistente!"); return; }
             const pw = snap.child('config/senha').val();
             if(pw && document.getElementById('box-senha').style.display === 'none') {
                 document.getElementById('box-senha').style.display = 'block';
-                alert("Esta sala possui senha!");
                 return;
             }
             const pInput = document.getElementById('senha-manual').value;
@@ -197,23 +195,30 @@
         db.ref(`salas/${salaAtual}/usuarios/${auth.currentUser.uid}`).set(true);
         db.ref(`salas/${salaAtual}/usuarios/${auth.currentUser.uid}`).onDisconnect().remove();
         db.ref(`salas/${salaAtual}/usuarios`).on("value", s => { document.getElementById('contagem').innerText = `● ${s.val() ? Object.keys(s.val()).length : 0} online`; });
-        db.ref(`salas/${salaAtual}/typing`).on("value", snap => {
-            const outros = Object.keys(snap.val() || {}).filter(id => id !== auth.currentUser.uid);
-            document.getElementById('typing-label').style.display = outros.length > 0 ? 'block' : 'none';
-        });
     }
 
     function renderizar(m, key) {
         if(document.getElementById(key)) return;
-        const div = document.createElement("div");
-        div.id = key; const isM = m.nick === nickAtual;
+        const div = document.createElement("div"); div.id = key;
+        const isM = m.nick === nickAtual;
         div.className = `msg ${isM ? 'msg-in' : 'msg-out'}`;
         let cont = `<small>${m.nick}</small>`;
-        if(m.tipo === 'audio') cont += `<audio controls src="${descriptografar(m.data)}"></audio>`;
-        else if(m.tipo === 'file') cont += `<a href="${descriptografar(m.data)}" download="arquivo" style="color:inherit">📁 Arquivo recebido</a>`;
-        else cont += descriptografar(m.texto);
         
-        if(m.burn) {
+        if(m.expired) {
+            cont += `<span class="expired">Mensagem expirada</span>`;
+        } else if(m.tipo === 'audio') {
+            cont += `<audio controls src="${descriptografar(m.data)}"></audio>`;
+        } else if(m.tipo === 'image') {
+            cont += `<img src="${descriptografar(m.data)}" onclick="window.open(this.src)"> <br><small style="opacity:0.6">Expira em breve</small>`;
+            iniciarExpiracao(key, isM);
+        } else if(m.tipo === 'file') {
+            cont += `<a href="${descriptografar(m.data)}" download="documento" style="color:inherit">📁 Documento recebido</a> <br><small style="opacity:0.6">Expira em breve</small>`;
+            iniciarExpiracao(key, isM);
+        } else {
+            cont += descriptografar(m.texto);
+        }
+
+        if(m.burn && !m.expired) {
             let tempo = 15;
             cont += `<br><span id="burn-${key}" style="font-size:9px; color:red">🔥 ${tempo}s</span>`;
             let itv = setInterval(() => {
@@ -222,63 +227,92 @@
                 if(tempo <= 0) { clearInterval(itv); if(isM) db.ref(`salas/${salaAtual}/mensagens/${key}`).remove(); document.getElementById(key)?.remove(); }
             }, 1000);
         }
+
         div.innerHTML = cont;
         document.getElementById('mensagens').appendChild(div);
         document.getElementById('mensagens').scrollTop = document.getElementById('mensagens').scrollHeight;
     }
 
+    function iniciarExpiracao(key, isOwner) {
+        setTimeout(() => {
+            if(isOwner) db.ref(`salas/${salaAtual}/mensagens/${key}`).update({expired: true, data: ""});
+            const el = document.getElementById(key);
+            if(el) el.innerHTML = `<small>Sistema</small><span class="expired">Mensagem expirada</span>`;
+        }, 60000);
+    }
+
     function enviarTexto() {
         const agora = Date.now();
-        if(agora - ultimaMsgTime < 1000) { alert("Sem spam!"); return; }
+        if(agora - ultimaMsgTime < 1000) return;
         const t = document.getElementById('texto'); if(!t.value) return;
         ultimaMsgTime = agora;
         db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, texto: criptografar(t.value), burn: isBurn, timestamp: Date.now() });
         t.value = ""; if(isBurn) toggleBurn();
     }
 
-    function enviarArquivo(input) {
-        const file = input.files[0]; if(!file) return;
+    function processarFoto(input) {
+        const file = input.files[0];
+        if(!file || file.size > 10 * 1024 * 1024) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const max = 800; let w = img.width, h = img.height;
+                if(w > h) { if(w > max){ h *= max/w; w = max; } } else { if(h > max){ w *= max/h; h = max; } }
+                canvas.width = w; canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, tipo: 'image', data: criptografar(canvas.toDataURL('image/jpeg', 0.7)), timestamp: Date.now() });
+                toggleAnexos();
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function processarDocumento(input) {
+        const file = input.files[0];
+        if(!file || file.size > 2 * 1024 * 1024) return;
         const reader = new FileReader();
         reader.onload = e => {
-            db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, tipo: 'file', data: criptografar(e.target.result), burn: isBurn, timestamp: Date.now() });
+            db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, tipo: 'file', data: criptografar(e.target.result), timestamp: Date.now() });
             toggleAnexos();
         };
         reader.readAsDataURL(file);
     }
 
+    // Áudio com Timer de 45s
     async function startRecording() {
         audioChunks = []; segundosRec = 0;
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(stream);
-        mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-        mediaRecorder.start();
-        document.getElementById('btn-mic').classList.add('recording');
-        timerRec = setInterval(() => { segundosRec++; document.getElementById('texto').placeholder = `Gravando: ${segundosRec}s`; }, 1000);
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            mediaRecorder.start();
+            document.getElementById('btn-mic-plus').classList.add('rec-active');
+            timerInterval = setInterval(() => {
+                segundosRec++;
+                let m = Math.floor(segundosRec / 60); let s = segundosRec % 60;
+                document.getElementById('timer-rec').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                if(segundosRec >= 45) stopRecording();
+            }, 1000);
+        } catch(e) { alert("Erro ao acessar microfone"); }
     }
 
     function stopRecording() {
-        if(!mediaRecorder) return;
-        mediaRecorder.stop(); clearInterval(timerRec);
-        document.getElementById('btn-mic').classList.remove('recording');
-        document.getElementById('texto').placeholder = "Mensagem...";
+        if(!mediaRecorder || mediaRecorder.state === 'inactive') return;
+        mediaRecorder.stop(); clearInterval(timerInterval);
+        document.getElementById('btn-mic-plus').classList.remove('rec-active');
         mediaRecorder.onstop = () => {
             const blob = new Blob(audioChunks, { type: 'audio/webm' });
             const reader = new FileReader();
             reader.readAsDataURL(blob);
             reader.onloadend = () => {
-                const tempDiv = document.createElement('div');
-                tempDiv.className = "msg msg-in";
-                tempDiv.innerHTML = `<small>Enviar áudio?</small><audio controls src="${reader.result}"></audio>
-                <div class="confirm-audio">
-                    <button class="btn-conf" style="background:#22c55e; color:white" id="conf-ok">✔</button>
-                    <button class="btn-conf" style="background:#ef4444; color:white" id="conf-no">✖</button>
-                </div>`;
-                document.getElementById('mensagens').appendChild(tempDiv);
-                document.getElementById('conf-ok').onclick = () => {
+                if(confirm("Deseja enviar o áudio?")) {
                     db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, tipo: 'audio', data: criptografar(reader.result), timestamp: Date.now() });
-                    tempDiv.remove();
-                };
-                document.getElementById('conf-no').onclick = () => tempDiv.remove();
+                    toggleAnexos();
+                }
+                document.getElementById('timer-rec').innerText = "00:00";
             };
         };
     }
