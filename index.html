@@ -8,6 +8,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
@@ -51,7 +52,7 @@
         #topo { padding: 10px 15px; background: white; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
         
         #mensagens { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
-        .msg { padding: 4px 12px; border-radius: 14px; max-width: 85%; font-size: 14px; position: relative; line-height: 1.4; }
+        .msg { padding: 4px 12px; border-radius: 14px; max-width: 85%; font-size: 14px; position: relative; line-height: 1.4; word-wrap: break-word; }
         .msg-out { align-self: flex-start; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-bottom-left-radius: 4px; }
         .msg-in { align-self: flex-end; background: var(--gradient); color: white; border-bottom-right-radius: 4px; }
         .msg small { font-size: 10px; font-weight: 800; display: block; margin-bottom: 2px; }
@@ -73,11 +74,9 @@
         #menu-anexos { bottom: 65px; left: 10px; }
         #menu-config button, #menu-anexos button { border: none; background: none; padding: 14px; text-align: left; font-size: 15px; font-weight: 600; cursor: pointer; }
         
-        .expira-aviso { font-size: 9px; opacity: 0.6; display: block; margin-top: 4px; }
         .btn-download { color: inherit; text-decoration: underline; font-size: 11px; margin-top: 8px; display: inline-block; cursor: pointer; font-weight: bold; }
         
-        /* Estilo Anti-Spam */
-        #status-nick { font-size: 12px; font-weight: bold; margin-left: 5px; }
+        #status-nick { font-size: 11px; font-weight: bold; margin-left: 5px; }
         .spam-bloqueado { color: #ef4444 !important; }
     </style>
 </head>
@@ -88,24 +87,28 @@
         <div class="raio-container">⚡</div>
         <h1>Swiftly</h1>
         <p>Segurança e velocidade em cada mensagem.</p>
-        <div class="card-auth" id="main-menu">
+        <div class="card-auth">
             <button class="btn-main" onclick="showGroup('group-rapido')">⚡ Chat Rápido</button>
             <div id="group-rapido" class="input-group">
-                <input id="nick-rapido" placeholder="Seu apelido" maxlength="12" onkeydown="if(event.key==='Enter') entrarAutomatico()">
+                <input id="nick-rapido" placeholder="Seu apelido" maxlength="12">
                 <button class="btn-sec" onclick="entrarAutomatico()">Entrar Agora</button>
             </div>
+
             <button class="btn-main" onclick="showGroup('group-criar')">🔒 Criar Chat</button>
             <div id="group-criar" class="input-group">
-                <input id="nick-criar" placeholder="Seu apelido" maxlength="12" onkeydown="if(event.key==='Enter') criarSalaPrivada()">
-                <input id="nova-sala" placeholder="Nome da sala (Opcional)" maxlength="6" onkeydown="if(event.key==='Enter') criarSalaPrivada()">
-                <input id="nova-senha" type="password" placeholder="Senha (Opcional)" maxlength="8" onkeydown="if(event.key==='Enter') criarSalaPrivada()">
+                <input id="nick-criar" placeholder="Seu apelido" maxlength="12">
+                <input id="nova-sala" placeholder="Nome da sala (Opcional)" maxlength="6">
+                <input id="nova-senha" type="password" placeholder="Senha (Opcional)" maxlength="8">
                 <button class="btn-sec" onclick="criarSalaPrivada()">Criar e Entrar</button>
             </div>
+
             <button class="btn-main" onclick="showGroup('group-entrar')">🔑 Entrar em Chat</button>
             <div id="group-entrar" class="input-group">
-                <input id="nick-entrar" placeholder="Seu apelido" maxlength="12" onkeydown="if(event.key==='Enter') entrar()">
-                <input id="sala-manual" placeholder="Código da sala" maxlength="6" onkeydown="if(event.key==='Enter') entrar()">
-                <div id="box-senha-manual" style="display:none"><input id="senha-manual" type="password" placeholder="Senha da sala" onkeydown="if(event.key==='Enter') entrar()"></div>
+                <input id="nick-entrar" placeholder="Seu apelido" maxlength="12">
+                <input id="sala-manual" placeholder="Código da sala" maxlength="6">
+                <div id="box-senha-manual" style="display:none">
+                    <input id="senha-manual" type="password" placeholder="Senha da sala">
+                </div>
                 <button class="btn-sec" onclick="entrar()">Verificar e Entrar</button>
             </div>
         </div>
@@ -116,8 +119,10 @@
         <h1 id="label-sala-convite">Sala: ---</h1>
         <p>Você foi convidado para esta conversa.</p>
         <div class="card-auth">
-            <input id="nick-convite" placeholder="Seu apelido" maxlength="12" onkeydown="if(event.key==='Enter') confirmarEntradaConvite()">
-            <div id="box-senha-convite" style="display:none"><input id="senha-convite" type="password" placeholder="Senha da sala" maxlength="8" onkeydown="if(event.key==='Enter') confirmarEntradaConvite()"></div>
+            <input id="nick-convite" placeholder="Seu apelido" maxlength="12">
+            <div id="box-senha-convite" style="display:none">
+                <input id="senha-convite" type="password" placeholder="Senha da sala" maxlength="8">
+            </div>
             <button class="btn-main" onclick="confirmarEntradaConvite()">Entrar no Chat</button>
             <button class="btn-sec" style="opacity:0.6" onclick="sairDaSala()">Voltar ao Início</button>
         </div>
@@ -132,7 +137,7 @@
             </div>
             <button class="btn-action" style="background:#f1f5f9" onclick="event.stopPropagation(); toggleConfig()">⚙️</button>
             <div id="menu-config">
-                <button id="btnMudarNome" onclick="mudarNomeSala()">✏️ Mudar Nome (1x)</button>
+                <button onclick="mudarNomeSala()">✏️ Mudar Nome (1x)</button>
                 <button onclick="exibirQR()">📱 QR Code</button>
                 <button onclick="sairDaSala()" style="color:red">🚪 Sair</button>
             </div>
@@ -146,7 +151,7 @@
             </div>
             <input type="file" id="img-input" accept="image/*" style="display:none" onchange="processarAnexo(this, 'foto')">
             <input type="file" id="file-input" style="display:none" onchange="processarAnexo(this, 'arquivo')">
-            <input id="texto" type="text" placeholder="Mensagem..." maxlength="500" onkeydown="if(event.key==='Enter') enviarTexto()">
+            <input id="texto" type="text" placeholder="Mensagem..." maxlength="500">
             <button id="btn-enviar-msg" class="btn-action btn-send" onclick="enviarTexto()">➤</button>
         </div>
     </div>
@@ -162,25 +167,49 @@
 </div>
 
 <script>
-    firebase.initializeApp({
+    // --- CONFIGURAÇÃO FIREBASE ---
+    const firebaseConfig = {
         apiKey: "AIzaSyCkkkHhydC92yB5N364Ula4-aM2LUlSmG4",
         authDomain: "ponte-virtual-rujan.firebaseapp.com",
         databaseURL: "https://ponte-virtual-rujan-default-rtdb.firebaseio.com",
         projectId: "ponte-virtual-rujan"
-    });
-
+    };
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const auth = firebase.auth();
+
+    // --- VARIÁVEIS DE CONTROLE ---
     let salaAtual, nickAtual, jaMudouNome = false;
     let senhaSalaAtual = "";
     let entrarTime = Date.now();
-
-    // VARIÁVEIS ANTI-SPAM
-    let historicoMensagens = [];
-    let ultimaMensagemTexto = "";
-    let repeticoesTexto = 0;
-    let nivelPunicao = 0; // 0: Livre, 1: 30s, 2: 10min, 3: Ban
+    
+    // --- VARIÁVEIS ANTI-SPAM ---
+    let historicoMsgs = [];
+    let ultimaMsgTexto = "";
+    let repeticoes = 0;
+    let nivelPunicao = 0; 
     let bloqueadoAte = 0;
+
+    // --- FUNÇÕES DE NAVEGAÇÃO (CORREÇÃO DO ERRO DO CONSOLE) ---
+    function showGroup(id) {
+        document.querySelectorAll('.input-group').forEach(g => g.style.display = 'none');
+        document.getElementById(id).style.display = 'flex';
+    }
+
+    function toggleConfig() { 
+        const m = document.getElementById('menu-config');
+        m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; 
+    }
+
+    function toggleAnexos() { 
+        const m = document.getElementById('menu-anexos');
+        m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; 
+    }
+
+    // --- SEGURANÇA E CRIPTOGRAFIA ---
+    async function garantirAuth() {
+        if (!auth.currentUser) await auth.signInAnonymously();
+    }
 
     function criptografar(texto) {
         if (!senhaSalaAtual) return texto;
@@ -191,31 +220,22 @@
         if (!senhaSalaAtual) return textoCripto;
         try {
             const bytes = CryptoJS.AES.decrypt(textoCripto, senhaSalaAtual);
-            const original = bytes.toString(CryptoJS.enc.Utf8);
-            return original ? original : "Mensagem protegida";
+            return bytes.toString(CryptoJS.enc.Utf8) || "Mensagem protegida";
         } catch(e) { return "Erro de chave"; }
     }
 
-    // SISTEMA ANTI-SPAM
+    // --- LÓGICA ANTI-SPAM ---
     function verificarSpam(texto) {
         const agora = Date.now();
-        
-        // Verificar se ainda está no tempo de bloqueio
         if (agora < bloqueadoAte) return true;
 
-        // Regra 1: Rapidez (4 mensagens em menos de 2 segundos)
-        historicoMensagens.push(agora);
-        historicoMensagens = historicoMensagens.filter(t => agora - t < 2000);
+        historicoMsgs.push(agora);
+        historicoMsgs = historicoMsgs.filter(t => agora - t < 2000);
         
-        // Regra 2: Repetição de texto
-        if (texto === ultimaMensagemTexto) {
-            repeticoesTexto++;
-        } else {
-            repeticoesTexto = 1;
-            ultimaMensagemTexto = texto;
-        }
+        if (texto === ultimaMsgTexto) repeticoes++;
+        else { repeticoes = 1; ultimaMsgTexto = texto; }
 
-        if (historicoMensagens.length > 4 || repeticoesTexto > 4) {
+        if (historicoMsgs.length > 4 || repeticoes > 4) {
             aplicarPunicao();
             return true;
         }
@@ -225,46 +245,41 @@
     function aplicarPunicao() {
         nivelPunicao++;
         const agora = Date.now();
-        
         if (nivelPunicao === 1) {
             bloqueadoAte = agora + 30000;
-            iniciarContagemRegressiva(30);
+            iniciarTimer(30);
         } else if (nivelPunicao === 2) {
             bloqueadoAte = agora + 600000;
-            iniciarContagemRegressiva(600);
+            iniciarTimer(600);
         } else {
-            // Banimento por 1 semana (Local)
-            localStorage.setItem('swiftly_ban_' + salaAtual, agora + (7 * 24 * 60 * 60 * 1000));
-            alert("Você foi expulso da sala por spam excessivo.");
+            localStorage.setItem('ban_' + salaAtual, agora + 604800000);
+            alert("Banido por 1 semana por excesso de spam.");
             sairDaSala();
         }
     }
 
-    function iniciarContagemRegressiva(segundos) {
+    function iniciarTimer(s) {
         const label = document.getElementById('status-nick');
         const input = document.getElementById('texto');
-        const btn = document.getElementById('btn-enviar-msg');
-        
-        label.classList.add('spam-bloqueado');
         input.disabled = true;
-        btn.style.opacity = "0.5";
-
-        let restante = segundos;
-        const intervalo = setInterval(() => {
-            restante--;
-            label.innerText = `⚠️ ${nickAtual} (${restante}s)`;
-            if (restante <= 0 || Date.now() >= bloqueadoAte) {
-                clearInterval(intervalo);
+        label.classList.add('spam-bloqueado');
+        let r = s;
+        const i = setInterval(() => {
+            r--;
+            label.innerText = `⚠️ ${nickAtual} (${r}s)`;
+            if (r <= 0) {
+                clearInterval(i);
                 label.innerText = "";
-                label.classList.remove('spam-bloqueado');
                 input.disabled = false;
-                btn.style.opacity = "1";
             }
         }, 1000);
     }
 
-    async function garantirAuth() {
-        if (!auth.currentUser) await auth.signInAnonymously();
+    // --- ENTRADA E CONEXÃO ---
+    function checarBan(s) {
+        const b = localStorage.getItem('ban_' + s);
+        if (b && Date.now() < b) { alert("Você está banido desta sala temporariamente."); return true; }
+        return false;
     }
 
     async function inicializarApp() {
@@ -275,109 +290,82 @@
 
         await garantirAuth();
 
-        const savedNick = sessionStorage.getItem('swiftly_nick');
-        const savedSala = sessionStorage.getItem('swiftly_sala');
-        const savedPw = sessionStorage.getItem('swiftly_pw') || "";
-        const urlParams = new URLSearchParams(window.location.search);
-        
-        if (savedNick && savedSala && !urlParams.get('sala')) {
-            senhaSalaAtual = savedPw;
-            conectar(savedNick, savedSala, false);
-        } else {
-            verificarConvite();
-        }
-    }
+        const sN = sessionStorage.getItem('swiftly_nick');
+        const sS = sessionStorage.getItem('swiftly_sala');
+        const sP = sessionStorage.getItem('swiftly_pw') || "";
+        const params = new URLSearchParams(window.location.search);
+        const salaConv = params.get('sala');
 
-    function verificarConvite() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const salaConvite = urlParams.get('sala');
-        if (salaConvite) {
-            salaAtual = salaConvite.toUpperCase();
+        if (salaConv) {
+            salaAtual = salaConv.toUpperCase();
             document.getElementById('login').style.display = 'none';
             document.getElementById('login-convite').style.display = 'flex';
             document.getElementById('label-sala-convite').innerText = "Sala: " + salaAtual;
             db.ref(`salas/${salaAtual}/config/senha`).once('value', snap => {
                 if (snap.val()) document.getElementById('box-senha-convite').style.display = 'block';
             });
+        } else if (sN && sS) {
+            senhaSalaAtual = sP;
+            conectar(sN, sS, false);
         }
     }
-
-    function checarBanimento(sala) {
-        const ban = localStorage.getItem('swiftly_ban_' + sala);
-        if (ban && Date.now() < parseInt(ban)) {
-            const dias = Math.ceil((parseInt(ban) - Date.now()) / (1000 * 60 * 60 * 24));
-            alert(`Você está banido desta sala. Tente novamente em alguns dias.`);
-            return true;
-        }
-        return false;
-    }
-
-    async function confirmarEntradaConvite() {
-        if (checarBanimento(salaAtual)) return;
-        await garantirAuth();
-        const nick = document.getElementById('nick-convite').value.trim();
-        const senhaInput = document.getElementById('senha-convite').value.trim();
-        if (!nick) return alert("Digite um apelido");
-        db.ref(`salas/${salaAtual}/config/senha`).once('value', snap => {
-            const senhaReal = snap.val();
-            if (senhaReal && senhaInput !== senhaReal) return alert("Senha incorreta!");
-            senhaSalaAtual = senhaInput || salaAtual;
-            sessionStorage.setItem('swiftly_pw', senhaSalaAtual);
-            conectar(nick, salaAtual, true);
-            document.getElementById('login-convite').style.display = 'none';
-        });
-    }
-
-    function gerarId6() { return Math.random().toString(36).substring(2, 8).toUpperCase(); }
 
     async function entrarAutomatico() {
         const n = document.getElementById('nick-rapido').value.trim();
-        if(!n) return alert("Digite seu apelido!");
-        let s = gerarId6();
-        if (checarBanimento(s)) return;
-        await garantirAuth();
+        if(!n) return alert("Nick!");
+        const s = Math.random().toString(36).substring(2, 8).toUpperCase();
         senhaSalaAtual = s;
-        sessionStorage.setItem('swiftly_pw', senhaSalaAtual);
+        sessionStorage.setItem('swiftly_pw', s);
         conectar(n, s, true);
     }
 
     async function criarSalaPrivada() {
         const n = document.getElementById('nick-criar').value.trim();
-        let s = document.getElementById('nova-sala').value.trim().toUpperCase() || gerarId6();
-        if (checarBanimento(s)) return;
-        await garantirAuth();
+        const s = document.getElementById('nova-sala').value.trim().toUpperCase() || Math.random().toString(36).substring(2, 8).toUpperCase();
         const pw = document.getElementById('nova-senha').value.trim();
-        if(n) { 
-            senhaSalaAtual = pw || s;
-            sessionStorage.setItem('swiftly_pw', senhaSalaAtual);
-            if(pw) db.ref(`salas/${s}/config`).set({senha:pw}); 
-            else db.ref(`salas/${s}/config`).set({criadaEm: Date.now()});
-            conectar(n, s, true); 
-        } else alert("Apelido!");
+        if(!n) return alert("Nick!");
+        senhaSalaAtual = pw || s;
+        sessionStorage.setItem('swiftly_pw', senhaSalaAtual);
+        if(pw) db.ref(`salas/${s}/config`).set({senha:pw});
+        conectar(n, s, true);
     }
 
     async function entrar() {
         const n = document.getElementById('nick-entrar').value.trim();
         const s = document.getElementById('sala-manual').value.trim().toUpperCase();
-        if(!n || !s) return alert("Preencha os campos!");
-        if (checarBanimento(s)) return;
-        await garantirAuth();
+        if(!n || !s) return alert("Campos vazios!");
+        if(checarBan(s)) return;
 
         db.ref(`salas/${s}`).once('value', snap => {
-            if (!snap.exists()) return alert("Sala não encontrada.");
+            if(!snap.exists()) return alert("Sala não existe.");
             const pw = snap.child('config/senha').val();
-            const boxSenha = document.getElementById('box-senha-manual');
-            
-            if(pw && boxSenha.style.display === 'none') {
-                boxSenha.style.display = 'block';
-                alert("Esta sala exige senha!");
+            const box = document.getElementById('box-senha-manual');
+            if(pw && box.style.display === 'none') {
+                box.style.display = 'block';
+                alert("Senha necessária!");
             } else {
-                const senhaInput = document.getElementById('senha-manual').value;
-                if(pw && senhaInput !== pw) return alert("Senha incorreta!");
-                senhaSalaAtual = senhaInput || s;
+                const pIn = document.getElementById('senha-manual').value;
+                if(pw && pIn !== pw) return alert("Senha incorreta!");
+                senhaSalaAtual = pIn || s;
                 sessionStorage.setItem('swiftly_pw', senhaSalaAtual);
                 conectar(n, s, true);
             }
+        });
+    }
+
+    async function confirmarEntradaConvite() {
+        const n = document.getElementById('nick-convite').value.trim();
+        const pIn = document.getElementById('senha-convite').value.trim();
+        if(!n) return alert("Nick!");
+        if(checarBan(salaAtual)) return;
+
+        db.ref(`salas/${salaAtual}/config/senha`).once('value', snap => {
+            const pw = snap.val();
+            if(pw && pIn !== pw) return alert("Senha errada!");
+            senhaSalaAtual = pIn || salaAtual;
+            sessionStorage.setItem('swiftly_pw', senhaSalaAtual);
+            conectar(n, salaAtual, true);
+            document.getElementById('login-convite').style.display = 'none';
         });
     }
 
@@ -388,56 +376,38 @@
         document.getElementById('login').style.display = "none";
         document.getElementById('chat').style.display = "flex";
         document.getElementById('labelSala').innerText = "Sala: " + s;
-        if(avisar) {
-            db.ref(`salas/${s}/mensagens`).push({ tipo: "sistema", texto: `${n} entrou`, timestamp: Date.now() });
-        }
+        if(avisar) db.ref(`salas/${s}/mensagens`).push({ tipo: "sistema", texto: `${n} entrou`, timestamp: Date.now() });
         iniciarChat();
     }
 
     function iniciarChat() {
-        db.ref(`salas`).off();
-        const refMsgs = db.ref(`salas/${salaAtual}/mensagens`);
-        const refUsers = db.ref(`salas/${salaAtual}/usuarios/${auth.currentUser.uid}`);
-        refUsers.set({nick: nickAtual, online: true});
-        refUsers.onDisconnect().remove();
+        const refM = db.ref(`salas/${salaAtual}/mensagens`);
+        db.ref(`salas/${salaAtual}/usuarios/${auth.currentUser.uid}`).set({nick: nickAtual, online: true}).then(() => {
+            db.ref(`salas/${salaAtual}/usuarios/${auth.currentUser.uid}`).onDisconnect().remove();
+        });
         
-        refMsgs.on("child_added", s => renderizarMensagem(s.val(), s.key));
-        
+        refM.on("child_added", s => renderizar(s.val(), s.key));
         db.ref(`salas/${salaAtual}/usuarios`).on("value", s => {
             document.getElementById('contagem').innerText = `● ${s.val() ? Object.keys(s.val()).length : 0} online`;
         });
-
-        setInterval(() => {
-            const agora = Date.now();
-            refMsgs.once('value', snap => {
-                let ultimaAtividade = entrarTime;
-                snap.forEach(child => {
-                    const m = child.val();
-                    if(m.timestamp > ultimaAtividade) ultimaAtividade = m.timestamp;
-                });
-                if(agora - ultimaAtividade > 300000) { 
-                    db.ref(`salas/${salaAtual}`).remove(); 
-                    sairDaSala(); 
-                }
-            });
-        }, 10000);
     }
 
-    function renderizarMensagem(m, key) {
-        const isMinha = m.nick === nickAtual;
+    function renderizar(m, key) {
         const div = document.createElement("div");
-        div.className = `msg ${isMinha ? 'msg-in' : 'msg-out'}`;
+        const isM = m.nick === nickAtual;
+        div.className = `msg ${isM ? 'msg-in' : 'msg-out'}`;
         
-        let nickColor = m.tipo !== "sistema" ? getPastelColor(m.nick) : "transparent";
-        let html = m.tipo !== "sistema" ? `<small style="color:${nickColor}">${m.nick}</small><div id="cont-${key}">` : "";
-        
-        if(m.expirado) html += "🖼️ <i>Expirado</i>";
-        else if(m.tipo === "foto") html += `<img src="${descriptografar(m.url)}" class="img-chat"><a href="${descriptografar(m.url)}" download="Swiftly_IMG.jpg" class="btn-download">Baixar</a>`;
-        else if(m.tipo === "arquivo") html += `📄 <b>${m.nome}</b><br><span class="btn-download" onclick="baixarArquivoSeguro('${descriptografar(m.data)}', '${m.nome}')">Baixar</span>`;
-        else if(m.tipo === "sistema") html = `<center><small style="color:#94a3b8">${m.texto}</small></center>`;
-        else html += descriptografar(m.texto);
-        
-        div.innerHTML = html + (m.tipo !== "sistema" ? "</div>" : "");
+        if(m.tipo === "sistema") {
+            div.innerHTML = `<center><small style="color:#94a3b8">${m.texto}</small></center>`;
+        } else {
+            let nC = `hsl(${Math.abs(m.nick.split('').reduce((a,b)=>a+b.charCodeAt(0),0)%360)}, 70%, 75%)`;
+            let txt = descriptografar(m.texto);
+            let html = `<small style="color:${nC}">${m.nick}</small>`;
+            if(m.tipo === "foto") html += `<img src="${descriptografar(m.url)}" class="img-chat"><a href="${descriptografar(m.url)}" download class="btn-download">Baixar</a>`;
+            else if(m.tipo === "arquivo") html += `📄 <b>${m.nome}</b><br><span class="btn-download" onclick="baixarArq('${descriptografar(m.data)}','${m.nome}')">Baixar</span>`;
+            else html += txt;
+            div.innerHTML = html;
+        }
         document.getElementById('mensagens').appendChild(div);
         document.getElementById('mensagens').scrollTop = document.getElementById('mensagens').scrollHeight;
     }
@@ -445,46 +415,29 @@
     function enviarTexto() {
         const t = document.getElementById('texto');
         const val = t.value.trim();
-        if(!val) return;
-
-        // VALIDAÇÃO ANTI-SPAM
-        if (verificarSpam(val)) return;
-
-        db.ref(`salas/${salaAtual}/mensagens`).push({ 
-            nick: nickAtual, 
-            texto: criptografar(val), 
-            uid: auth.currentUser.uid,
-            timestamp: Date.now() 
-        });
+        if(!val || verificarSpam(val)) return;
+        db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, texto: criptografar(val), timestamp: Date.now() });
         t.value = "";
     }
 
     function processarAnexo(input, tipo) {
-        const file = input.files[0]; if(!file) return;
-        
-        // Anti-spam para anexos também
-        if (verificarSpam("anexo_file")) return;
-
-        const reader = new FileReader(); const expira = Date.now() + 60000;
-        reader.readAsDataURL(file);
-        reader.onload = e => {
+        const f = input.files[0]; if(!f || verificarSpam("file")) return;
+        const r = new FileReader();
+        r.readAsDataURL(f);
+        r.onload = e => {
             if(tipo === 'foto') {
                 const img = new Image(); img.src = e.target.result;
                 img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
+                    const c = document.createElement('canvas');
+                    const ctx = c.getContext('2d');
                     const max = 800; let w = img.width, h = img.height;
                     if(w > h) { if(w > max){ h *= max/w; w = max; } } else { if(h > max){ w *= max/h; h = max; } }
-                    canvas.width = w; canvas.height = h; ctx.drawImage(img, 0, 0, w, h);
-                    db.ref(`salas/${salaAtual}/mensagens`).push({ 
-                        nick: nickAtual, tipo: "foto", url: criptografar(canvas.toDataURL('image/jpeg', 0.6)), expiraEm: expira, timestamp: Date.now(), uid: auth.currentUser.uid 
-                    });
+                    c.width = w; c.height = h; ctx.drawImage(img, 0, 0, w, h);
+                    db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, tipo: "foto", url: criptografar(c.toDataURL('image/jpeg', 0.6)), timestamp: Date.now() });
                 };
             } else {
-                if(file.size > 2100000) return alert("Max 2MB");
-                db.ref(`salas/${salaAtual}/mensagens`).push({ 
-                    nick: nickAtual, tipo: "arquivo", data: criptografar(e.target.result), nome: file.name, expiraEm: expira, timestamp: Date.now(), uid: auth.currentUser.uid 
-                });
+                if(f.size > 2100000) return alert("Max 2MB");
+                db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, tipo: "arquivo", data: criptografar(e.target.result), nome: f.name, timestamp: Date.now() });
             }
         };
         input.value = "";
@@ -496,26 +449,24 @@
         if(n) { 
             n = n.toUpperCase().substring(0,6).replace(/[^A-Z0-9]/g, "");
             db.ref(`salas/${salaAtual}/mensagens`).push({tipo: "sistema", texto: `${nickAtual} mudou o nome da sala`, timestamp: Date.now()}); 
-            setTimeout(() => { salaAtual = n; sessionStorage.setItem('swiftly_sala', n); document.getElementById('labelSala').innerText = "Sala: " + n; jaMudouNome = true; iniciarChat(); }, 500);
+            setTimeout(() => { salaAtual = n; sessionStorage.setItem('swiftly_sala', n); document.getElementById('labelSala').innerText = "Sala: " + n; jaMudouNome = true; }, 500);
         }
     }
 
-    function toggleConfig() { document.getElementById('menu-config').style.display = document.getElementById('menu-config').style.display === 'flex' ? 'none' : 'flex'; }
-    function toggleAnexos() { document.getElementById('menu-anexos').style.display = document.getElementById('menu-anexos').style.display === 'flex' ? 'none' : 'flex'; }
     function sairDaSala() { sessionStorage.clear(); window.location.href = window.location.pathname; }
-    function baixarArquivoSeguro(base64, nome) { const link = document.createElement("a"); link.href = base64; link.download = nome; link.click(); }
+    function baixarArq(b64, n) { const l = document.createElement("a"); l.href = b64; l.download = n; l.click(); }
 
     function exibirQR() {
-        const container = document.getElementById("qrcode-wrapper");
-        container.innerHTML = '<div id="temp-qr" style="display:none"></div><canvas id="qrcode-canvas"></canvas>';
+        const wrap = document.getElementById("qrcode-wrapper");
+        wrap.innerHTML = '<div id="temp-qr" style="display:none"></div><canvas id="qrcode-canvas"></canvas>';
         new QRCode(document.getElementById("temp-qr"), { text: window.location.href.split('?')[0] + "?sala=" + salaAtual, width: 200, height: 200 });
         setTimeout(() => {
-            const qrImg = document.querySelector("#temp-qr img");
-            const finalCanvas = document.getElementById("qrcode-canvas");
-            finalCanvas.width = 200; finalCanvas.height = 200;
-            finalCanvas.getContext("2d").drawImage(qrImg, 0, 0);
+            const img = document.querySelector("#temp-qr img");
+            const can = document.getElementById("qrcode-canvas");
+            can.width = 200; can.height = 200;
+            can.getContext("2d").drawImage(img, 0, 0);
             document.getElementById('modalQR').style.display = "flex";
-        }, 150);
+        }, 200);
     }
 </script>
 </body>
