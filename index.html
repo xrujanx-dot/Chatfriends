@@ -19,7 +19,7 @@
         #app { width: 100%; max-width: 450px; height: 100%; margin: 0 auto; background: #fff; display: flex; flex-direction: column; position: relative; overflow: hidden; }
         
         #login { position: absolute; inset: 0; z-index: 100; background: var(--bg-dark); display: flex; flex-direction: column; align-items: center; padding: 30px; text-align: center; overflow-y: auto; }
-        .raio-container { background: var(--gradient); width: 70px; height: 70px; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 35px; color: white; margin-bottom: 15px; transform: rotate(-10deg); flex-shrink: 0; }
+        .raio-container { background: var(--gradient); width: 70px; height: 70px; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 35px; color: white; margin-bottom: 15px; transform: rotate(-10deg); }
         h1 { color: white; margin: 0; font-weight: 800; font-size: 28px; }
         p { color: #94a3b8; font-size: 14px; margin-bottom: 25px; }
         .card-auth { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 20px; width: 100%; display: flex; flex-direction: column; gap: 12px; }
@@ -29,34 +29,30 @@
         .input-group { display: none; flex-direction: column; gap: 10px; margin-top: 5px; }
 
         #chat { display: none; flex: 1; flex-direction: column; height: 100%; background: #f8fafc; }
-        #topo { padding: 10px 15px; background: white; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
-        #mensagens { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+        #topo { padding: 15px; background: white; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+        #mensagens { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
         
-        .msg { padding: 8px 12px; border-radius: 14px; max-width: 85%; font-size: 14px; position: relative; word-wrap: break-word; }
-        .msg-out { align-self: flex-start; background: white; border-bottom-left-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .msg-in { align-self: flex-end; background: var(--gradient); color: white; border-bottom-right-radius: 4px; }
-        .msg small { font-size: 10px; font-weight: 800; display: block; margin-bottom: 2px; }
-        .msg img { max-width: 100%; border-radius: 8px; margin-top: 5px; }
-        .expired { font-style: italic; opacity: 0.7; color: #64748b !important; }
+        .msg { padding: 10px 14px; border-radius: 16px; max-width: 85%; font-size: 14px; position: relative; }
+        .msg-out { align-self: flex-start; background: white; color: #000; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .msg-in { align-self: flex-end; background: var(--gradient); color: white; }
+        .msg small { font-size: 10px; font-weight: 800; display: block; margin-bottom: 4px; opacity: 0.7; }
         
-        audio { height: 35px; width: 180px; filter: grayscale(1); }
-        .confirm-audio { display: flex; gap: 5px; margin-top: 5px; }
-        .btn-conf { border: none; border-radius: 5px; padding: 8px; cursor: pointer; font-size: 12px; }
+        #envio { padding: 12px; background: white; display: flex; gap: 10px; border-top: 1px solid #f1f5f9; align-items: center; }
+        #texto { background: #f1f5f9; border: none; flex: 1; height: 45px; padding: 0 18px; border-radius: 15px; outline: none; color: #000; }
+        .btn-action { width: 45px; height: 45px; border-radius: 15px; border: none; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; background: #f1f5f9; }
+        
+        #menu-config, #menu-anexos { position: absolute; background: white; box-shadow: 0 15px 35px rgba(0,0,0,0.2); border-radius: 18px; display: none; flex-direction: column; z-index: 200; min-width: 220px; overflow: hidden; }
+        #menu-config { top: 65px; right: 15px; }
+        #menu-anexos { bottom: 75px; left: 15px; }
+        .menu-btn { border: none; background: none; padding: 15px; text-align: left; font-weight: 600; cursor: pointer; border-bottom: 1px solid #f8fafc; color: #1e293b; transition: 0.2s; }
+        .menu-btn:hover { background: #f8fafc; }
 
-        #envio { padding: 10px; background: white; display: flex; gap: 8px; border-top: 1px solid #f1f5f9; align-items: center; }
-        #texto { background: #f1f5f9; border: none; flex: 1; height: 42px; padding: 0 15px; border-radius: 12px; outline: none; }
-        .btn-action { width: 42px; height: 42px; border-radius: 12px; border: none; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
-        
-        #menu-config, #menu-anexos { position: absolute; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 12px; display: none; flex-direction: column; z-index: 110; min-width: 180px; overflow: hidden; }
-        #menu-config { top: 55px; right: 15px; }
-        #menu-anexos { bottom: 65px; left: 10px; }
-        #menu-config button, #menu-anexos button { border: none; background: none; padding: 14px; text-align: left; font-weight: 600; cursor: pointer; border-bottom: 1px solid #f1f5f9; }
-        
-        .rec-active { color: #ef4444 !important; animation: blink 1s infinite; }
-        @keyframes blink { 50% { opacity: 0.5; } }
+        #modalQR { position: absolute; inset: 0; background: rgba(15, 23, 42, 0.9); z-index: 500; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .qr-card { background: white; padding: 30px; border-radius: 30px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
+        #qrcode img { margin: 0 auto; border: 10px solid #fff; border-radius: 10px; }
 
-        #modalQR { position: absolute; inset: 0; background: rgba(0,0,0,0.85); z-index: 300; display: none; align-items: center; justify-content: center; }
-        .qr-card { background: white; padding: 20px; border-radius: 20px; text-align: center; }
+        .rec-active { color: #ef4444 !important; background: #fee2e2 !important; }
+        .expired { font-style: italic; opacity: 0.6; }
     </style>
 </head>
 <body onload="inicializarApp()">
@@ -65,7 +61,7 @@
     <div id="login">
         <div class="raio-container">⚡</div>
         <h1>Swiftly Pro</h1>
-        <p>Privacidade total e velocidade real.</p>
+        <p>Segurança máxima em tempo real.</p>
         <div class="card-auth">
             <button class="btn-main" onclick="showGroup('group-rapido')">⚡ Chat Rápido</button>
             <div id="group-rapido" class="input-group">
@@ -76,7 +72,7 @@
             <div id="group-criar" class="input-group">
                 <input id="nick-criar" placeholder="Seu apelido">
                 <input id="nova-sala" placeholder="Nome da sala">
-                <input id="nova-senha" type="password" placeholder="Senha" onkeydown="if(event.key==='Enter') criarSalaPrivada()">
+                <input id="nova-senha" type="password" placeholder="Senha (Opcional)" onkeydown="if(event.key==='Enter') criarSalaPrivada()">
                 <button class="btn-sec" onclick="criarSalaPrivada()">Criar</button>
             </div>
             <button class="btn-main" onclick="showGroup('group-entrar')">🔑 Entrar em Chat</button>
@@ -94,14 +90,13 @@
     <div id="chat">
         <div id="topo">
             <div>
-                <b id="labelSala">Sala: ---</b><br>
-                <span id="typing-label" style="font-size:10px; color:#6366f1; font-weight: bold; display:none">Alguém está digitando...</span>
-                <span id="contagem" style="font-size:10px; color:#10b981">● 0 online</span>
+                <b id="labelSala" style="font-size: 18px; color: #1e293b">Sala: ---</b><br>
+                <span id="contagem" style="font-size:12px; color:#10b981; font-weight: 600">● 0 online</span>
             </div>
             <button class="btn-action" onclick="toggleConfig()">⚙️</button>
             <div id="menu-config">
-                <button onclick="exibirQR()">📱 QR Code</button>
-                <button onclick="sairDaSala()" style="color:red">🚪 Sair</button>
+                <button class="menu-btn" onclick="exibirQR()">📱 Compartilhar QR</button>
+                <button class="menu-btn" onclick="sairDaSala()" style="color:red">🚪 Sair do Chat</button>
             </div>
         </div>
         
@@ -110,23 +105,24 @@
         <div id="envio">
             <button class="btn-action" onclick="toggleAnexos()">+</button>
             <div id="menu-anexos">
-                <button onclick="document.getElementById('file-input').click()">🖼️ Enviar Foto (10MB)</button>
-                <button onclick="document.getElementById('doc-input').click()">📁 Documento (2MB)</button>
-                <button id="btn-mic-plus" onmousedown="startRecording()" onmouseup="stopRecording()" ontouchstart="startRecording()" ontouchend="stopRecording()">🎤 Gravar Áudio <span id="timer-rec">00:00</span></button>
+                <button class="menu-btn" onclick="document.getElementById('file-input').click()">🖼️ Foto (10MB)</button>
+                <button class="menu-btn" onclick="document.getElementById('doc-input').click()">📁 Documento (2MB)</button>
+                <button id="btn-mic-plus" class="menu-btn" onmousedown="startRecording()" onmouseup="stopRecording()" ontouchstart="startRecording()" ontouchend="stopRecording()">🎤 Áudio (<span id="timer-rec">00:00</span>)</button>
                 <input type="file" id="file-input" style="display:none" accept="image/*" onchange="processarFoto(this)">
                 <input type="file" id="doc-input" style="display:none" onchange="processarDocumento(this)">
             </div>
-            
             <button id="burn-btn" class="btn-action" onclick="toggleBurn()">🔥</button>
-            <input id="texto" placeholder="Mensagem..." onkeydown="if(event.key==='Enter') enviarTexto()" oninput="handleTyping()">
-            <button class="btn-action" style="background:var(--gradient); color:white" onclick="enviarTexto()">➤</button>
+            <input id="texto" placeholder="Escreva algo..." onkeydown="if(event.key==='Enter') enviarTexto()">
+            <button class="btn-action" style="background:var(--gradient); color:white; border-radius: 12px" onclick="enviarTexto()">➤</button>
         </div>
     </div>
 
     <div id="modalQR" onclick="this.style.display='none'">
         <div class="qr-card" onclick="event.stopPropagation()">
+            <h3 style="margin-top:0; color:#1e293b">Convite da Sala</h3>
             <div id="qrcode"></div>
-            <button class="btn-sec" style="color:black; width:100%" onclick="document.getElementById('modalQR').style.display='none'">Fechar</button>
+            <p id="txt-sala-qr" style="color:#64748b; font-weight: 800; margin: 15px 0"></p>
+            <button class="btn-main" style="width:100%" onclick="document.getElementById('modalQR').style.display='none'">Fechar</button>
         </div>
     </div>
 </div>
@@ -134,21 +130,15 @@
 <script>
     firebase.initializeApp({ apiKey: "AIzaSyCkkkHhydC92yB5N364Ula4-aM2LUlSmG4", authDomain: "ponte-virtual-rujan.firebaseapp.com", databaseURL: "https://ponte-virtual-rujan-default-rtdb.firebaseio.com", projectId: "ponte-virtual-rujan" });
     const db = firebase.database(); const auth = firebase.auth();
-    let salaAtual, nickAtual, isBurn = false, mediaRecorder, audioChunks = [], timerInterval, segundosRec = 0, ultimaMsgTime = 0, errosSenha = 0;
+    let salaAtual, nickAtual, isBurn = false, mediaRecorder, audioChunks = [], timerInterval, segundosRec = 0, ultimaMsgTime = 0, ultimaMsgTexto = "", errosSenha = 0;
 
     function showGroup(id) { document.querySelectorAll('.input-group').forEach(g => g.style.display = 'none'); document.getElementById(id).style.display = 'flex'; }
     function toggleConfig() { const m = document.getElementById('menu-config'); m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; }
     function toggleAnexos() { const m = document.getElementById('menu-anexos'); m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; }
-    function toggleBurn() { isBurn = !isBurn; document.getElementById('burn-btn').className = isBurn ? 'btn-action burn-active' : 'btn-action'; }
+    function toggleBurn() { isBurn = !isBurn; document.getElementById('burn-btn').style.background = isBurn ? '#fee2e2' : '#f1f5f9'; }
 
     function criptografar(t) { return CryptoJS.AES.encrypt(t, salaAtual).toString(); }
     function descriptografar(t) { try { return CryptoJS.AES.decrypt(t, salaAtual).toString(CryptoJS.enc.Utf8); } catch(e) { return "..."; } }
-
-    function handleTyping() {
-        if(!salaAtual) return;
-        db.ref(`salas/${salaAtual}/typing/${auth.currentUser.uid}`).set(true);
-        setTimeout(() => db.ref(`salas/${salaAtual}/typing/${auth.currentUser.uid}`).remove(), 2000);
-    }
 
     function entrarNoChat() {
         const n = document.getElementById('nick-entrar').value;
@@ -164,7 +154,7 @@
             const pInput = document.getElementById('senha-manual').value;
             if(pw && pInput !== pw) {
                 errosSenha++;
-                if(errosSenha >= 3) { salaAtual = "FAKE_" + Math.random().toString(36).substring(7); nickAtual = n; conectar(); }
+                if(errosSenha >= 3) { salaAtual = "FAKE_" + Math.random().toString(36).substring(7).toUpperCase(); nickAtual = n; conectar(); }
                 else alert("Senha incorreta!");
                 return;
             }
@@ -204,64 +194,45 @@
         div.className = `msg ${isM ? 'msg-in' : 'msg-out'}`;
         let cont = `<small>${m.nick}</small>`;
         
-        if(m.expired) {
-            cont += `<span class="expired">Mensagem expirada</span>`;
-        } else if(m.tipo === 'audio') {
-            cont += `<audio controls src="${descriptografar(m.data)}"></audio>`;
-        } else if(m.tipo === 'image') {
-            cont += `<img src="${descriptografar(m.data)}" onclick="window.open(this.src)"> <br><small style="opacity:0.6">Expira em breve</small>`;
-            iniciarExpiracao(key, isM);
-        } else if(m.tipo === 'file') {
-            cont += `<a href="${descriptografar(m.data)}" download="documento" style="color:inherit">📁 Documento recebido</a> <br><small style="opacity:0.6">Expira em breve</small>`;
-            iniciarExpiracao(key, isM);
-        } else {
-            cont += descriptografar(m.texto);
-        }
+        if(m.expired) { cont += `<span class="expired">Mensagem expirada</span>`; } 
+        else if(m.tipo === 'audio') { cont += `<audio controls src="${descriptografar(m.data)}"></audio>`; } 
+        else if(m.tipo === 'image') { cont += `<img src="${descriptografar(m.data)}" style="max-width:100%; border-radius:10px" onclick="window.open(this.src)"> <br><small>Expira em breve</small>`; iniciarExpiracao(key, isM); } 
+        else if(m.tipo === 'file') { cont += `<a href="${descriptografar(m.data)}" download="Doc" style="color:inherit; font-weight:bold">📁 Documento Recebido</a> <br><small>Expira em breve</small>`; iniciarExpiracao(key, isM); } 
+        else { cont += descriptografar(m.texto); }
 
         if(m.burn && !m.expired) {
-            let tempo = 15;
-            cont += `<br><span id="burn-${key}" style="font-size:9px; color:red">🔥 ${tempo}s</span>`;
-            let itv = setInterval(() => {
-                tempo--;
-                if(document.getElementById(`burn-${key}`)) document.getElementById(`burn-${key}`).innerText = `🔥 ${tempo}s`;
+            let tempo = 15; cont += `<br><span id="burn-${key}" style="font-size:9px; color:red">🔥 ${tempo}s</span>`;
+            let itv = setInterval(() => { tempo--; if(document.getElementById(`burn-${key}`)) document.getElementById(`burn-${key}`).innerText = `🔥 ${tempo}s`;
                 if(tempo <= 0) { clearInterval(itv); if(isM) db.ref(`salas/${salaAtual}/mensagens/${key}`).remove(); document.getElementById(key)?.remove(); }
             }, 1000);
         }
-
         div.innerHTML = cont;
         document.getElementById('mensagens').appendChild(div);
         document.getElementById('mensagens').scrollTop = document.getElementById('mensagens').scrollHeight;
     }
 
-    function iniciarExpiracao(key, isOwner) {
-        setTimeout(() => {
-            if(isOwner) db.ref(`salas/${salaAtual}/mensagens/${key}`).update({expired: true, data: ""});
-            const el = document.getElementById(key);
-            if(el) el.innerHTML = `<small>Sistema</small><span class="expired">Mensagem expirada</span>`;
-        }, 60000);
-    }
+    function iniciarExpiracao(key, isOwner) { setTimeout(() => { if(isOwner) db.ref(`salas/${salaAtual}/mensagens/${key}`).update({expired: true, data: ""}); const el = document.getElementById(key); if(el) el.innerHTML = `<small>Sistema</small><span class="expired">Mensagem expirada</span>`; }, 60000); }
 
     function enviarTexto() {
         const agora = Date.now();
-        if(agora - ultimaMsgTime < 1000) return;
-        const t = document.getElementById('texto'); if(!t.value) return;
-        ultimaMsgTime = agora;
-        db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, texto: criptografar(t.value), burn: isBurn, timestamp: Date.now() });
-        t.value = ""; if(isBurn) toggleBurn();
+        const textoVal = document.getElementById('texto').value.trim();
+        if(!textoVal) return;
+        if(agora - ultimaMsgTime < 1000 || textoVal === ultimaMsgTexto) { alert("Sem spam!"); return; }
+        
+        ultimaMsgTime = agora; ultimaMsgTexto = textoVal;
+        db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, texto: criptografar(textoVal), burn: isBurn, timestamp: Date.now() });
+        document.getElementById('texto').value = ""; if(isBurn) toggleBurn();
     }
 
     function processarFoto(input) {
-        const file = input.files[0];
-        if(!file || file.size > 10 * 1024 * 1024) return;
+        const file = input.files[0]; if(!file || file.size > 10 * 1024 * 1024) return;
         const reader = new FileReader();
         reader.onload = (e) => {
             const img = new Image();
             img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const max = 800; let w = img.width, h = img.height;
+                const canvas = document.createElement('canvas'); const max = 800; let w = img.width, h = img.height;
                 if(w > h) { if(w > max){ h *= max/w; w = max; } } else { if(h > max){ w *= max/h; h = max; } }
-                canvas.width = w; canvas.height = h;
-                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                canvas.width = w; canvas.height = h; canvas.getContext('2d').drawImage(img, 0, 0, w, h);
                 db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, tipo: 'image', data: criptografar(canvas.toDataURL('image/jpeg', 0.7)), timestamp: Date.now() });
                 toggleAnexos();
             };
@@ -271,32 +242,24 @@
     }
 
     function processarDocumento(input) {
-        const file = input.files[0];
-        if(!file || file.size > 2 * 1024 * 1024) return;
+        const file = input.files[0]; if(!file || file.size > 2 * 1024 * 1024) return;
         const reader = new FileReader();
-        reader.onload = e => {
-            db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, tipo: 'file', data: criptografar(e.target.result), timestamp: Date.now() });
-            toggleAnexos();
-        };
+        reader.onload = e => { db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, tipo: 'file', data: criptografar(e.target.result), timestamp: Date.now() }); toggleAnexos(); };
         reader.readAsDataURL(file);
     }
 
-    // Áudio com Timer de 45s
     async function startRecording() {
         audioChunks = []; segundosRec = 0;
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-            mediaRecorder.start();
-            document.getElementById('btn-mic-plus').classList.add('rec-active');
-            timerInterval = setInterval(() => {
-                segundosRec++;
-                let m = Math.floor(segundosRec / 60); let s = segundosRec % 60;
-                document.getElementById('timer-rec').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-                if(segundosRec >= 45) stopRecording();
-            }, 1000);
-        } catch(e) { alert("Erro ao acessar microfone"); }
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+        mediaRecorder.start();
+        document.getElementById('btn-mic-plus').classList.add('rec-active');
+        timerInterval = setInterval(() => { segundosRec++; 
+            let m = Math.floor(segundosRec / 60); let s = segundosRec % 60;
+            document.getElementById('timer-rec').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            if(segundosRec >= 45) stopRecording();
+        }, 1000);
     }
 
     function stopRecording() {
@@ -308,7 +271,7 @@
             const reader = new FileReader();
             reader.readAsDataURL(blob);
             reader.onloadend = () => {
-                if(confirm("Deseja enviar o áudio?")) {
+                if(confirm("Deseja enviar o áudio gravado?")) {
                     db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, tipo: 'audio', data: criptografar(reader.result), timestamp: Date.now() });
                     toggleAnexos();
                 }
@@ -319,7 +282,8 @@
 
     function exibirQR() {
         document.getElementById('qrcode').innerHTML = "";
-        new QRCode(document.getElementById("qrcode"), { text: salaAtual, width: 180, height: 180 });
+        new QRCode(document.getElementById("qrcode"), { text: salaAtual, width: 200, height: 200, colorDark : "#0f172a", colorLight : "#ffffff" });
+        document.getElementById('txt-sala-qr').innerText = "CÓDIGO: " + salaAtual;
         document.getElementById('modalQR').style.display = 'flex';
         toggleConfig();
     }
