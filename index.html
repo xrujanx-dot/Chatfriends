@@ -35,6 +35,7 @@
         .msg { padding: 10px 14px; border-radius: 16px; max-width: 85%; font-size: 14px; position: relative; }
         .msg-out { align-self: flex-start; background: white; color: #000; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .msg-in { align-self: flex-end; background: var(--gradient); color: white; }
+        .msg-sys { align-self: center; background: #fee2e2; color: #b91c1c; font-size: 11px; font-weight: bold; border: 1px solid #fecaca; }
         .msg small { font-size: 10px; font-weight: 800; display: block; margin-bottom: 4px; opacity: 0.7; }
         
         #envio { padding: 12px; background: white; display: flex; gap: 10px; border-top: 1px solid #f1f5f9; align-items: center; }
@@ -44,15 +45,14 @@
         #menu-config, #menu-anexos { position: absolute; background: white; box-shadow: 0 15px 35px rgba(0,0,0,0.2); border-radius: 18px; display: none; flex-direction: column; z-index: 200; min-width: 220px; overflow: hidden; }
         #menu-config { top: 65px; right: 15px; }
         #menu-anexos { bottom: 75px; left: 15px; }
-        .menu-btn { border: none; background: none; padding: 15px; text-align: left; font-weight: 600; cursor: pointer; border-bottom: 1px solid #f8fafc; color: #1e293b; }
+        .menu-btn { border: none; background: none; padding: 15px; text-align: left; font-weight: 600; cursor: pointer; border-bottom: 1px solid #f8fafc; color: #1e293b; transition: 0.2s; }
 
         .rec-active { color: #ef4444 !important; background: #fee2e2 !important; }
         .burn-on { background: #fee2e2 !important; border: 1px solid #ef4444 !important; color: #ef4444 !important; }
 
         #modalQR { position: absolute; inset: 0; background: rgba(15, 23, 42, 0.9); z-index: 500; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .qr-card { background: white; padding: 30px; border-radius: 30px; text-align: center; }
-        
-        audio { height: 35px; width: 200px; margin-top: 5px; border-radius: 5px; }
+        audio { height: 35px; width: 200px; margin-top: 5px; }
     </style>
 </head>
 <body onload="inicializarApp()">
@@ -129,6 +129,7 @@
     firebase.initializeApp({ apiKey: "AIzaSyCkkkHhydC92yB5N364Ula4-aM2LUlSmG4", authDomain: "ponte-virtual-rujan.firebaseapp.com", databaseURL: "https://ponte-virtual-rujan-default-rtdb.firebaseio.com", projectId: "ponte-virtual-rujan" });
     const db = firebase.database(); const auth = firebase.auth();
     let salaAtual, nickAtual, isBurn = false, mediaRecorder, audioChunks = [], timerInterval, segundosRec = 0, errosSenha = 0;
+    let totalMensagens = 0, ultimaMsgTime = 0, infracoes = 0, bloqueadoAte = 0;
 
     function showGroup(id) { document.querySelectorAll('.input-group').forEach(g => g.style.display = 'none'); document.getElementById(id).style.display = 'flex'; }
     function toggleConfig() { const m = document.getElementById('menu-config'); m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; }
@@ -136,21 +137,28 @@
     function toggleBurn() { isBurn = !isBurn; document.getElementById('burn-btn').classList.toggle('burn-on', isBurn); }
 
     function criptografar(t) { return CryptoJS.AES.encrypt(t, salaAtual).toString(); }
-    function descriptografar(t) { try { let bytes = CryptoJS.AES.decrypt(t, salaAtual); return bytes.toString(CryptoJS.enc.Utf8); } catch(e) { return ""; } }
+    function descriptografar(t) { try { return CryptoJS.AES.decrypt(t, salaAtual).toString(CryptoJS.enc.Utf8); } catch(e) { return ""; } }
 
     function entrarNoChat() {
         const n = document.getElementById('nick-entrar').value;
         const s = document.getElementById('sala-manual').value.toUpperCase();
+        if(localStorage.getItem('ban_'+s)) { alert("Você está banido desta sala por 7 dias."); return; }
         if(!n || !s) return;
         db.ref(`salas/${s}`).once('value', snap => {
-            if(!snap.exists()) return;
+            if(!snap.exists()) { alert("Sala não existe."); return; }
             const pw = snap.child('config/senha').val();
-            if(pw && document.getElementById('box-senha').style.display === 'none') { document.getElementById('box-senha').style.display = 'block'; return; }
-            const pI = document.getElementById('senha-manual').value;
-            if(pw && pI !== pw) {
+            if(pw && document.getElementById('box-senha').style.display === 'none') {
+                document.getElementById('box-senha').style.display = 'block';
+                return;
+            }
+            const pInput = document.getElementById('senha-manual').value;
+            if(pw && pInput !== pw) {
                 errosSenha++;
-                if(errosSenha >= 3) { salaAtual = "FAKE_"+Math.random().toString(36).substring(5).toUpperCase(); nickAtual = n; conectar(); }
-                else alert("Senha incorreta");
+                if(errosSenha >= 3) {
+                    document.getElementById('senha-manual').value = "";
+                    salaAtual = "FAKE_" + Math.random().toString(36).substring(5).toUpperCase();
+                    nickAtual = n; conectar();
+                } else { alert("Senha errada!"); }
                 return;
             }
             nickAtual = n; salaAtual = s; conectar();
@@ -179,30 +187,52 @@
         if(document.getElementById(key)) return;
         const div = document.createElement("div"); div.id = key;
         const isM = m.nick === nickAtual;
-        div.className = `msg ${isM ? 'msg-in' : 'msg-out'}`;
-        let cont = `<small>${m.nick}</small>`;
         
-        let dataDec = descriptografar(m.data || "");
-        
-        if(m.expired) cont += `<span style="opacity:0.5; font-style:italic">Mídia Expirada</span>`;
-        else if(m.tipo === 'audio') cont += `<audio controls src="${dataDec}"></audio>`;
-        else if(m.tipo === 'image') { cont += `<img src="${dataDec}" style="max-width:100%;border-radius:10px" onclick="window.open(this.src)">`; iniciarExp(key, isM); }
-        else cont += descriptografar(m.texto);
+        if(m.tipo === 'sistema') {
+            div.className = "msg msg-sys";
+            div.innerText = m.texto;
+        } else {
+            div.className = `msg ${isM ? 'msg-in' : 'msg-out'}`;
+            let cont = `<small>${m.nick}</small>`;
+            let dataDec = m.data ? descriptografar(m.data) : "";
+            
+            if(m.expired) cont += `<span style="opacity:0.5; font-style:italic">Expirado</span>`;
+            else if(m.tipo === 'audio') cont += `<audio controls src="${dataDec}"></audio>`;
+            else if(m.tipo === 'image') { cont += `<img src="${dataDec}" style="max-width:100%;border-radius:10px">`; iniciarExp(key, isM); }
+            else cont += descriptografar(m.texto);
 
-        if(m.burn && !m.expired) {
-            let t = 15; cont += `<br><span id="b-${key}" style="color:red;font-size:10px">🔥 ${t}s</span>`;
-            let iv = setInterval(() => { t--; if(document.getElementById(`b-${key}`)) document.getElementById(`b-${key}`).innerText = `🔥 ${t}s`;
-                if(t<=0){ clearInterval(iv); if(isM) db.ref(`salas/${salaAtual}/mensagens/${key}`).remove(); document.getElementById(key)?.remove(); }
-            }, 1000);
+            if(m.burn && !m.expired) {
+                let t = 15; cont += `<br><span id="b-${key}" style="color:red;font-size:10px">🔥 ${t}s</span>`;
+                let iv = setInterval(() => { t--; if(document.getElementById(`b-${key}`)) document.getElementById(`b-${key}`).innerText = `🔥 ${t}s`;
+                    if(t<=0){ clearInterval(iv); if(isM) db.ref(`salas/${salaAtual}/mensagens/${key}`).remove(); document.getElementById(key)?.remove(); }
+                }, 1000);
+            }
+            div.innerHTML = cont;
         }
-        div.innerHTML = cont;
         document.getElementById('mensagens').appendChild(div);
         document.getElementById('mensagens').scrollTop = document.getElementById('mensagens').scrollHeight;
     }
 
+    function verificarSpam() {
+        const agora = Date.now();
+        if(agora < bloqueadoAte) { alert("Você está temporariamente bloqueado por spam."); return false; }
+        if(agora - ultimaMsgTime < 800) { totalMensagens++; } else { totalMensagens = 0; }
+        ultimaMsgTime = agora;
+        if(totalMensagens > 3) {
+            infracoes++;
+            if(infracoes === 1) { bloqueadoAte = agora + 15000; notificarSistema(`${nickAtual} bloqueado por 15s (Spam)`); }
+            else if(infracoes === 2) { bloqueadoAte = agora + 600000; notificarSistema(`${nickAtual} bloqueado por 10min (Spam)`); }
+            else { notificarSistema(`${nickAtual} BANIDO POR 7 DIAS`); localStorage.setItem('ban_'+salaAtual, Date.now() + 604800000); setTimeout(sairDaSala, 2000); }
+            return false;
+        }
+        return true;
+    }
+
+    function notificarSistema(txt) { db.ref(`salas/${salaAtual}/mensagens`).push({ tipo: 'sistema', texto: txt, timestamp: Date.now() }); }
     function iniciarExp(k, o) { setTimeout(() => { if(o) db.ref(`salas/${salaAtual}/mensagens/${k}`).update({expired:true, data:""}); }, 60000); }
 
     function enviarTexto() {
+        if(!verificarSpam()) return;
         const t = document.getElementById('texto'); if(!t.value) return;
         db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, texto: criptografar(t.value), burn: isBurn, timestamp: Date.now() });
         t.value = "";
@@ -227,6 +257,7 @@
         mediaRecorder.stop();
         clearInterval(timerInterval);
         document.getElementById('btn-mic-plus').classList.remove('rec-active');
+        document.getElementById('timer-rec').innerText = "00:00";
         
         mediaRecorder.onstop = () => {
             const blob = new Blob(audioChunks, { type: 'audio/webm' });
@@ -234,10 +265,8 @@
             reader.readAsDataURL(blob);
             reader.onloadend = () => {
                 if(confirm("Enviar áudio?")) {
-                    db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, tipo: 'audio', data: criptografar(reader.result), timestamp: Date.now() });
+                    if(verificarSpam()) db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, tipo: 'audio', data: criptografar(reader.result), timestamp: Date.now() });
                 }
-                // RESET DO CRONÔMETRO
-                document.getElementById('timer-rec').innerText = "00:00";
                 segundosRec = 0;
                 toggleAnexos();
             };
@@ -248,7 +277,7 @@
         const file = input.files[0]; if(!file) return;
         const reader = new FileReader();
         reader.onload = e => {
-            db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, tipo: 'image', data: criptografar(e.target.result), timestamp: Date.now() });
+            if(verificarSpam()) db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, tipo: 'image', data: criptografar(e.target.result), timestamp: Date.now() });
             toggleAnexos();
         };
         reader.readAsDataURL(file);
