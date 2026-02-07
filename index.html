@@ -18,50 +18,43 @@
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-dark); overflow: hidden; position: fixed; }
         #app { width: 100%; max-width: 450px; height: 100%; margin: 0 auto; background: #fff; display: flex; flex-direction: column; position: relative; overflow: hidden; }
         
-        /* Telas de Login */
         #login { position: absolute; inset: 0; z-index: 100; background: var(--bg-dark); display: flex; flex-direction: column; align-items: center; padding: 30px; text-align: center; overflow-y: auto; }
         .raio-container { background: var(--gradient); width: 70px; height: 70px; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 35px; color: white; margin-bottom: 15px; transform: rotate(-10deg); flex-shrink: 0; }
         h1 { color: white; margin: 0; font-weight: 800; font-size: 28px; }
         p { color: #94a3b8; font-size: 14px; margin-bottom: 25px; }
         .card-auth { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 20px; width: 100%; display: flex; flex-direction: column; gap: 12px; }
-        input { width: 100%; padding: 14px 18px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; font-size: 15px; outline: none; }
-        .btn-main { background: var(--gradient); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 15px; }
-        .btn-sec { background: rgba(255,255,255,0.1); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 14px; }
-        .input-group { display: none; flex-direction: column; gap: 10px; margin-top: 5px; animation: fadeIn 0.3s ease; }
-        
-        /* Chat */
+        input { width: 100%; padding: 14px 18px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; outline: none; }
+        .btn-main { background: var(--gradient); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 700; cursor: pointer; }
+        .btn-sec { background: rgba(255,255,255,0.1); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer; }
+        .input-group { display: none; flex-direction: column; gap: 10px; margin-top: 5px; }
+
         #chat { display: none; flex: 1; flex-direction: column; height: 100%; background: #f8fafc; }
         #topo { padding: 10px 15px; background: white; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
         #mensagens { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
         
-        /* Mensagens */
-        .msg { padding: 8px 12px; border-radius: 14px; max-width: 85%; font-size: 14px; position: relative; line-height: 1.4; word-wrap: break-word; }
-        .msg-out { align-self: flex-start; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-bottom-left-radius: 4px; }
+        .msg { padding: 8px 12px; border-radius: 14px; max-width: 85%; font-size: 14px; position: relative; word-wrap: break-word; }
+        .msg-out { align-self: flex-start; background: white; border-bottom-left-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .msg-in { align-self: flex-end; background: var(--gradient); color: white; border-bottom-right-radius: 4px; }
         .msg small { font-size: 10px; font-weight: 800; display: block; margin-bottom: 2px; }
         
-        audio { height: 35px; width: 180px; margin-top: 5px; border-radius: 10px; filter: grayscale(1); }
-        .confirm-audio { display: flex; gap: 5px; margin-top: 8px; justify-content: center; }
-        .btn-conf { border: none; border-radius: 8px; padding: 8px 15px; cursor: pointer; font-weight: bold; }
+        audio { height: 35px; width: 180px; filter: grayscale(1); }
+        .confirm-audio { display: flex; gap: 5px; margin-top: 5px; }
+        .btn-conf { border: none; border-radius: 5px; padding: 8px; cursor: pointer; font-size: 12px; }
 
-        /* Barra de Envio */
         #envio { padding: 10px; background: white; display: flex; gap: 8px; border-top: 1px solid #f1f5f9; align-items: center; }
-        #texto { background: #f1f5f9; border: none; flex: 1; height: 42px; padding: 0 15px; border-radius: 12px; color: #000; font-size: 15px; outline: none; }
-        .btn-action { width: 42px; height: 42px; border-radius: 12px; border: none; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-        .burn-active { background: #fee2e2 !important; color: #ef4444 !important; border: 1px solid #fecaca; }
+        #texto { background: #f1f5f9; border: none; flex: 1; height: 42px; padding: 0 15px; border-radius: 12px; outline: none; }
+        .btn-action { width: 42px; height: 42px; border-radius: 12px; border: none; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+        
         .recording { background: #ef4444 !important; color: white !important; animation: pulse 1s infinite; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
-
-        /* Modais */
-        #menu-config, #menu-anexos { position: absolute; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 12px; display: none; flex-direction: column; z-index: 110; border: 1px solid #eee; min-width: 170px; }
+        
+        #menu-config, #menu-anexos { position: absolute; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 12px; display: none; flex-direction: column; z-index: 110; min-width: 150px; }
         #menu-config { top: 55px; right: 15px; }
         #menu-anexos { bottom: 65px; left: 10px; }
-        #menu-config button, #menu-anexos button { border: none; background: none; padding: 14px; text-align: left; font-size: 15px; font-weight: 600; cursor: pointer; }
-        
-        #modalQR { position: absolute; inset: 0; background: rgba(0,0,0,0.8); z-index: 200; display: none; align-items: center; justify-content: center; }
-        .qr-card { background: white; padding: 20px; border-radius: 20px; text-align: center; }
+        #menu-config button, #menu-anexos button { border: none; background: none; padding: 12px; text-align: left; font-weight: 600; cursor: pointer; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        #modalQR { position: absolute; inset: 0; background: rgba(0,0,0,0.85); z-index: 300; display: none; align-items: center; justify-content: center; }
+        .qr-card { background: white; padding: 20px; border-radius: 20px; text-align: center; }
     </style>
 </head>
 <body onload="inicializarApp()">
@@ -74,24 +67,26 @@
         <div class="card-auth">
             <button class="btn-main" onclick="showGroup('group-rapido')">⚡ Chat Rápido</button>
             <div id="group-rapido" class="input-group">
-                <input id="nick-rapido" placeholder="Seu apelido" maxlength="12">
+                <input id="nick-rapido" placeholder="Seu apelido" onkeydown="if(event.key==='Enter') entrarAutomatico()">
                 <button class="btn-sec" onclick="entrarAutomatico()">Entrar Agora</button>
             </div>
-            
+
             <button class="btn-main" onclick="showGroup('group-criar')">🔒 Criar Chat</button>
             <div id="group-criar" class="input-group">
-                <input id="nick-criar" placeholder="Seu apelido" maxlength="12">
-                <input id="nova-sala" placeholder="Nome da sala (Opcional)" maxlength="6">
-                <input id="nova-senha" type="password" placeholder="Senha (Opcional)" maxlength="8">
-                <button class="btn-sec" onclick="criarSalaPrivada()">Criar e Entrar</button>
+                <input id="nick-criar" placeholder="Seu apelido">
+                <input id="nova-sala" placeholder="Nome da sala (Opcional)">
+                <input id="nova-senha" type="password" placeholder="Senha (Opcional)" onkeydown="if(event.key==='Enter') criarSalaPrivada()">
+                <button class="btn-sec" onclick="criarSalaPrivada()">Criar</button>
             </div>
 
             <button class="btn-main" onclick="showGroup('group-entrar')">🔑 Entrar em Chat</button>
             <div id="group-entrar" class="input-group">
-                <input id="nick-entrar" placeholder="Seu apelido" maxlength="12">
-                <input id="sala-manual" placeholder="Código da sala" maxlength="6">
-                <div id="box-senha-manual" style="display:none"><input id="senha-manual" type="password" placeholder="Senha da sala"></div>
-                <button class="btn-sec" onclick="entrar()">Verificar e Entrar</button>
+                <input id="nick-entrar" placeholder="Seu apelido">
+                <input id="sala-manual" placeholder="Código da sala" onkeydown="if(event.key==='Enter') entrarNoChat()">
+                <div id="box-senha" style="display:none; margin-top:5px">
+                    <input id="senha-manual" type="password" placeholder="Senha da sala" onkeydown="if(event.key==='Enter') entrarNoChat()">
+                </div>
+                <button class="btn-sec" onclick="entrarNoChat()">Verificar e Entrar</button>
             </div>
         </div>
     </div>
@@ -103,7 +98,7 @@
                 <span id="typing-label" style="font-size:10px; color:#6366f1; font-weight: bold; display:none">Alguém está digitando...</span>
                 <span id="contagem" style="font-size:10px; color:#10b981">● 0 online</span>
             </div>
-            <button class="btn-action" style="background:#f1f5f9" onclick="toggleConfig()">⚙️</button>
+            <button class="btn-action" onclick="toggleConfig()">⚙️</button>
             <div id="menu-config">
                 <button onclick="exibirQR()">📱 QR Code</button>
                 <button onclick="sairDaSala()" style="color:red">🚪 Sair</button>
@@ -113,13 +108,15 @@
         <div id="mensagens"></div>
 
         <div id="envio">
-            <button class="btn-action" style="background:#f1f5f9" onclick="toggleAnexos()">+</button>
-            <div id="menu-anexos"><button onclick="document.getElementById('img-input').click()">🖼️ Foto</button></div>
+            <button class="btn-action" onclick="toggleAnexos()">+</button>
+            <div id="menu-anexos">
+                <button onclick="document.getElementById('file-input').click()">📁 Documento / Foto</button>
+                <input type="file" id="file-input" style="display:none" onchange="enviarArquivo(this)">
+            </div>
             
             <button id="btn-mic" class="btn-action" onmousedown="startRecording()" onmouseup="stopRecording()" ontouchstart="startRecording()" ontouchend="stopRecording()">🎤</button>
-            <button id="burn-btn" class="btn-action" style="background:#f1f5f9" onclick="toggleBurn()">🔥</button>
+            <button id="burn-btn" class="btn-action" onclick="toggleBurn()">🔥</button>
             
-            <input type="file" id="img-input" accept="image/*" style="display:none">
             <input id="texto" placeholder="Mensagem..." onkeydown="if(event.key==='Enter') enviarTexto()" oninput="handleTyping()">
             <button class="btn-action" style="background:var(--gradient); color:white" onclick="enviarTexto()">➤</button>
         </div>
@@ -128,7 +125,7 @@
     <div id="modalQR" onclick="this.style.display='none'">
         <div class="qr-card" onclick="event.stopPropagation()">
             <div id="qrcode"></div>
-            <button class="btn-sec" style="color:black; width:100%; margin-top:10px" onclick="document.getElementById('modalQR').style.display='none'">Fechar</button>
+            <button class="btn-sec" style="color:black; width:100%" onclick="document.getElementById('modalQR').style.display='none'">Fechar</button>
         </div>
     </div>
 </div>
@@ -136,16 +133,15 @@
 <script>
     firebase.initializeApp({ apiKey: "AIzaSyCkkkHhydC92yB5N364Ula4-aM2LUlSmG4", authDomain: "ponte-virtual-rujan.firebaseapp.com", databaseURL: "https://ponte-virtual-rujan-default-rtdb.firebaseio.com", projectId: "ponte-virtual-rujan" });
     const db = firebase.database(); const auth = firebase.auth();
-    let salaAtual, nickAtual, senhaSalaAtual = "", isBurn = false, mediaRecorder, audioChunks = [], timerRec, segundosRec = 0, ultimaMsgTime = 0, errosSenha = 0;
-    const notifyPop = new Audio('https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3');
+    let salaAtual, nickAtual, senhaSala = "", isBurn = false, mediaRecorder, audioChunks = [], timerRec, segundosRec = 0, ultimaMsgTime = 0, errosSenha = 0;
 
     function showGroup(id) { document.querySelectorAll('.input-group').forEach(g => g.style.display = 'none'); document.getElementById(id).style.display = 'flex'; }
     function toggleConfig() { const m = document.getElementById('menu-config'); m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; }
     function toggleAnexos() { const m = document.getElementById('menu-anexos'); m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; }
     function toggleBurn() { isBurn = !isBurn; document.getElementById('burn-btn').className = isBurn ? 'btn-action burn-active' : 'btn-action'; }
 
-    function criptografar(t) { let chave = senhaSalaAtual || salaAtual; return CryptoJS.AES.encrypt(t, chave).toString(); }
-    function descriptografar(t) { try { let chave = senhaSalaAtual || salaAtual; return CryptoJS.AES.decrypt(t, chave).toString(CryptoJS.enc.Utf8); } catch(e) { return "..."; } }
+    function criptografar(t) { return CryptoJS.AES.encrypt(t, salaAtual).toString(); }
+    function descriptografar(t) { try { return CryptoJS.AES.decrypt(t, salaAtual).toString(CryptoJS.enc.Utf8); } catch(e) { return "..."; } }
 
     function handleTyping() {
         if(!salaAtual) return;
@@ -153,32 +149,42 @@
         setTimeout(() => db.ref(`salas/${salaAtual}/typing/${auth.currentUser.uid}`).remove(), 2000);
     }
 
-    async function entrar() {
-        const n = document.getElementById('nick-entrar').value.trim();
-        const s = document.getElementById('sala-manual').value.trim().toUpperCase();
+    // --- LÓGICA DE ENTRADA RESTAURADA ---
+    function entrarNoChat() {
+        const n = document.getElementById('nick-entrar').value;
+        const s = document.getElementById('sala-manual').value.toUpperCase();
         if(!n || !s) return;
+
         db.ref(`salas/${s}`).once('value', snap => {
-            const pwReal = snap.child('config/senha').val();
-            const box = document.getElementById('box-senha-manual');
-            if(pwReal && box.style.display === 'none') { box.style.display = 'block'; alert("Senha necessária!"); } 
-            else {
-                const pIn = document.getElementById('senha-manual').value;
-                if(pwReal && pIn !== pwReal) {
-                    errosSenha++;
-                    if(errosSenha >= 3) { senhaSalaAtual = "FANTASMA_" + Math.random(); nickAtual = n; salaAtual = s; conectar(); }
-                    else alert("Senha incorreta!");
-                    return;
-                }
-                senhaSalaAtual = pIn || s; nickAtual = n; salaAtual = s; conectar();
+            if(!snap.exists()) { alert("Sala inexistente!"); return; }
+            const pw = snap.child('config/senha').val();
+            if(pw && document.getElementById('box-senha').style.display === 'none') {
+                document.getElementById('box-senha').style.display = 'block';
+                alert("Esta sala possui senha!");
+                return;
             }
+            const pInput = document.getElementById('senha-manual').value;
+            if(pw && pInput !== pw) {
+                errosSenha++;
+                if(errosSenha >= 3) { salaAtual = "FAKE_" + Math.random().toString(36).substring(7); nickAtual = n; conectar(); }
+                else alert("Senha incorreta!");
+                return;
+            }
+            nickAtual = n; salaAtual = s; conectar();
         });
     }
 
     function entrarAutomatico() { nickAtual = document.getElementById('nick-rapido').value; if(!nickAtual) return; salaAtual = Math.random().toString(36).substring(7).toUpperCase(); conectar(); }
-    function criarSalaPrivada() { nickAtual = document.getElementById('nick-criar').value; if(!nickAtual) return; salaAtual = document.getElementById('nova-sala').value.toUpperCase() || Math.random().toString(36).substring(7).toUpperCase(); senhaSalaAtual = document.getElementById('nova-senha').value; if(senhaSalaAtual) db.ref(`salas/${salaAtual}/config`).set({senha: senhaSalaAtual}); conectar(); }
+    function criarSalaPrivada() { 
+        nickAtual = document.getElementById('nick-criar').value; 
+        salaAtual = document.getElementById('nova-sala').value.toUpperCase() || Math.random().toString(36).substring(7).toUpperCase();
+        const p = document.getElementById('nova-senha').value;
+        if(p) db.ref(`salas/${salaAtual}/config`).set({senha: p});
+        conectar();
+    }
 
     function conectar() {
-        localStorage.setItem('swift_n', nickAtual); localStorage.setItem('swift_s', salaAtual); localStorage.setItem('swift_p', senhaSalaAtual);
+        localStorage.setItem('swift_n', nickAtual); localStorage.setItem('swift_s', salaAtual);
         auth.signInAnonymously().then(() => {
             document.getElementById('login').style.display = "none"; document.getElementById('chat').style.display = "flex";
             document.getElementById('labelSala').innerText = "Sala: " + salaAtual;
@@ -187,42 +193,35 @@
     }
 
     function iniciarChat() {
-        db.ref(`salas/${salaAtual}/mensagens`).on("child_added", s => {
-            renderizar(s.val(), s.key);
-            if(s.val().nick !== nickAtual) notifyPop.play().catch(()=>{});
-        });
-        db.ref(`salas/${salaAtual}/usuarios/${auth.currentUser.uid}`).set({nick: nickAtual, online: true});
+        db.ref(`salas/${salaAtual}/mensagens`).on("child_added", s => renderizar(s.val(), s.key));
+        db.ref(`salas/${salaAtual}/usuarios/${auth.currentUser.uid}`).set(true);
         db.ref(`salas/${salaAtual}/usuarios/${auth.currentUser.uid}`).onDisconnect().remove();
         db.ref(`salas/${salaAtual}/usuarios`).on("value", s => { document.getElementById('contagem').innerText = `● ${s.val() ? Object.keys(s.val()).length : 0} online`; });
         db.ref(`salas/${salaAtual}/typing`).on("value", snap => {
-            const outros = Object.keys(snap.val() || {}).filter(id => id !== (auth.currentUser ? auth.currentUser.uid : ''));
+            const outros = Object.keys(snap.val() || {}).filter(id => id !== auth.currentUser.uid);
             document.getElementById('typing-label').style.display = outros.length > 0 ? 'block' : 'none';
         });
     }
 
     function renderizar(m, key) {
         if(document.getElementById(key)) return;
-        const div = document.createElement("div"); div.id = key;
-        const isM = m.nick === nickAtual;
+        const div = document.createElement("div");
+        div.id = key; const isM = m.nick === nickAtual;
         div.className = `msg ${isM ? 'msg-in' : 'msg-out'}`;
-        
-        let hash = 0; for (let i = 0; i < m.nick.length; i++) hash = m.nick.charCodeAt(i) + ((hash << 5) - hash);
-        let nC = `hsl(${Math.abs(hash % 360)}, 70%, 75%)`;
-        
-        let cont = `<small style="color:${isM ? '#fff' : nC}">${m.nick}</small>`;
+        let cont = `<small>${m.nick}</small>`;
         if(m.tipo === 'audio') cont += `<audio controls src="${descriptografar(m.data)}"></audio>`;
+        else if(m.tipo === 'file') cont += `<a href="${descriptografar(m.data)}" download="arquivo" style="color:inherit">📁 Arquivo recebido</a>`;
         else cont += descriptografar(m.texto);
         
-        if(m.burn || m.tipo === 'audio') {
-            let tempo = m.tipo === 'audio' ? 60 : 15;
-            cont += `<br><span id="burn-${key}" style="font-size:9px; opacity:0.8; color:${isM ? '#fff' : 'red'}">🔥 ${tempo}s</span>`;
+        if(m.burn) {
+            let tempo = 15;
+            cont += `<br><span id="burn-${key}" style="font-size:9px; color:red">🔥 ${tempo}s</span>`;
             let itv = setInterval(() => {
                 tempo--;
                 if(document.getElementById(`burn-${key}`)) document.getElementById(`burn-${key}`).innerText = `🔥 ${tempo}s`;
                 if(tempo <= 0) { clearInterval(itv); if(isM) db.ref(`salas/${salaAtual}/mensagens/${key}`).remove(); document.getElementById(key)?.remove(); }
             }, 1000);
         }
-
         div.innerHTML = cont;
         document.getElementById('mensagens').appendChild(div);
         document.getElementById('mensagens').scrollTop = document.getElementById('mensagens').scrollHeight;
@@ -237,20 +236,28 @@
         t.value = ""; if(isBurn) toggleBurn();
     }
 
+    function enviarArquivo(input) {
+        const file = input.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+            db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, tipo: 'file', data: criptografar(e.target.result), burn: isBurn, timestamp: Date.now() });
+            toggleAnexos();
+        };
+        reader.readAsDataURL(file);
+    }
+
     async function startRecording() {
         audioChunks = []; segundosRec = 0;
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-            mediaRecorder.start();
-            document.getElementById('btn-mic').classList.add('recording');
-            timerRec = setInterval(() => { segundosRec++; document.getElementById('texto').placeholder = `Gravando: ${segundosRec}s`; }, 1000);
-        } catch(e) { alert("Ative o microfone"); }
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+        mediaRecorder.start();
+        document.getElementById('btn-mic').classList.add('recording');
+        timerRec = setInterval(() => { segundosRec++; document.getElementById('texto').placeholder = `Gravando: ${segundosRec}s`; }, 1000);
     }
 
     function stopRecording() {
-        if(!mediaRecorder || mediaRecorder.state === 'inactive') return;
+        if(!mediaRecorder) return;
         mediaRecorder.stop(); clearInterval(timerRec);
         document.getElementById('btn-mic').classList.remove('recording');
         document.getElementById('texto').placeholder = "Mensagem...";
@@ -261,9 +268,9 @@
             reader.onloadend = () => {
                 const tempDiv = document.createElement('div');
                 tempDiv.className = "msg msg-in";
-                tempDiv.innerHTML = `<small>Confirmar áudio?</small><audio controls src="${reader.result}"></audio>
+                tempDiv.innerHTML = `<small>Enviar áudio?</small><audio controls src="${reader.result}"></audio>
                 <div class="confirm-audio">
-                    <button class="btn-conf" style="background:#22c55e; color:white" id="conf-ok">✔ Enviar</button>
+                    <button class="btn-conf" style="background:#22c55e; color:white" id="conf-ok">✔</button>
                     <button class="btn-conf" style="background:#ef4444; color:white" id="conf-no">✖</button>
                 </div>`;
                 document.getElementById('mensagens').appendChild(tempDiv);
@@ -284,10 +291,9 @@
     }
 
     async function inicializarApp() {
-        const sN = localStorage.getItem('swift_n'), sS = localStorage.getItem('swift_s'), sP = localStorage.getItem('swift_p');
-        if(sN && sS) { nickAtual = sN; salaAtual = sS; senhaSalaAtual = sP; conectar(); }
+        const sN = localStorage.getItem('swift_n'), sS = localStorage.getItem('swift_s');
+        if(sN && sS) { nickAtual = sN; salaAtual = sS; conectar(); }
     }
-
     function sairDaSala() { localStorage.clear(); location.reload(); }
 </script>
 </body>
