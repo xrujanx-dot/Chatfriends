@@ -65,22 +65,22 @@
         <div class="card-auth">
             <button class="btn-main" onclick="showGroup('group-rapido')">⚡ Chat Rápido</button>
             <div id="group-rapido" class="input-group">
-                <input id="nick-rapido" placeholder="Seu apelido">
+                <input id="nick-rapido" placeholder="Seu apelido" onkeydown="if(event.key==='Enter') entrarAutomatico()">
                 <button class="btn-sec" onclick="entrarAutomatico()">Entrar Agora</button>
             </div>
             <button class="btn-main" onclick="showGroup('group-criar')">🔒 Criar Chat</button>
             <div id="group-criar" class="input-group">
                 <input id="nick-criar" placeholder="Seu apelido">
                 <input id="nova-sala" placeholder="Nome da sala">
-                <input id="nova-senha" type="password" placeholder="Senha (Opcional)">
+                <input id="nova-senha" type="password" placeholder="Senha (Opcional)" onkeydown="if(event.key==='Enter') criarSalaPrivada()">
                 <button class="btn-sec" onclick="criarSalaPrivada()">Criar</button>
             </div>
             <button class="btn-main" onclick="showGroup('group-entrar')">🔑 Entrar em Chat</button>
             <div id="group-entrar" class="input-group">
                 <input id="nick-entrar" placeholder="Seu apelido">
-                <input id="sala-manual" placeholder="Código da sala">
+                <input id="sala-manual" placeholder="Código da sala" onkeydown="if(event.key==='Enter') entrarNoChat()">
                 <div id="box-senha" style="display:none; margin-top:5px">
-                    <input id="senha-manual" type="password" placeholder="Senha da sala">
+                    <input id="senha-manual" type="password" placeholder="Senha da sala" onkeydown="if(event.key==='Enter') entrarNoChat()">
                 </div>
                 <button class="btn-sec" onclick="entrarNoChat()">Entrar</button>
             </div>
