@@ -45,7 +45,6 @@
         #menu-config { top: 65px; right: 15px; }
         #menu-anexos { bottom: 75px; left: 15px; }
         .menu-btn { border: none; background: none; padding: 15px; text-align: left; font-weight: 600; cursor: pointer; border-bottom: 1px solid #f8fafc; color: #1e293b; transition: 0.2s; }
-        .menu-btn:hover { background: #f8fafc; }
 
         #modalQR { position: absolute; inset: 0; background: rgba(15, 23, 42, 0.9); z-index: 500; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .qr-card { background: white; padding: 30px; border-radius: 30px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
@@ -154,8 +153,11 @@
             const pInput = document.getElementById('senha-manual').value;
             if(pw && pInput !== pw) {
                 errosSenha++;
-                if(errosSenha >= 3) { salaAtual = "FAKE_" + Math.random().toString(36).substring(7).toUpperCase(); nickAtual = n; conectar(); }
-                else alert("Senha incorreta!");
+                if(errosSenha >= 3) { 
+                    salaAtual = "FAKE_" + Math.random().toString(36).substring(7).toUpperCase(); 
+                    nickAtual = n; 
+                    conectar(); 
+                } else { alert("Senha incorreta!"); }
                 return;
             }
             nickAtual = n; salaAtual = s; conectar();
@@ -217,7 +219,7 @@
         const agora = Date.now();
         const textoVal = document.getElementById('texto').value.trim();
         if(!textoVal) return;
-        if(agora - ultimaMsgTime < 1000 || textoVal === ultimaMsgTexto) { alert("Sem spam!"); return; }
+        if(agora - ultimaMsgTime < 1000 || (textoVal === ultimaMsgTexto && (agora - ultimaMsgTime < 5000))) { return; }
         
         ultimaMsgTime = agora; ultimaMsgTexto = textoVal;
         db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, texto: criptografar(textoVal), burn: isBurn, timestamp: Date.now() });
@@ -250,31 +252,39 @@
 
     async function startRecording() {
         audioChunks = []; segundosRec = 0;
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(stream);
-        mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
-        mediaRecorder.start();
-        document.getElementById('btn-mic-plus').classList.add('rec-active');
-        timerInterval = setInterval(() => { segundosRec++; 
-            let m = Math.floor(segundosRec / 60); let s = segundosRec % 60;
-            document.getElementById('timer-rec').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-            if(segundosRec >= 45) stopRecording();
-        }, 1000);
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+            mediaRecorder.start();
+            document.getElementById('btn-mic-plus').classList.add('rec-active');
+            timerInterval = setInterval(() => { 
+                segundosRec++; 
+                let m = Math.floor(segundosRec / 60); let s = segundosRec % 60;
+                document.getElementById('timer-rec').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                if(segundosRec >= 45) stopRecording();
+            }, 1000);
+        } catch(e) { alert("Microfone não disponível."); }
     }
 
     function stopRecording() {
         if(!mediaRecorder || mediaRecorder.state === 'inactive') return;
-        mediaRecorder.stop(); clearInterval(timerInterval);
+        mediaRecorder.stop(); 
+        clearInterval(timerInterval);
         document.getElementById('btn-mic-plus').classList.remove('rec-active');
+        
         mediaRecorder.onstop = () => {
             const blob = new Blob(audioChunks, { type: 'audio/webm' });
             const reader = new FileReader();
             reader.readAsDataURL(blob);
             reader.onloadend = () => {
-                if(confirm("Deseja enviar o áudio gravado?")) {
-                    db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, tipo: 'audio', data: criptografar(reader.result), timestamp: Date.now() });
+                const audioBase64 = reader.result;
+                if(audioBase64.length > 100 && confirm("Enviar áudio gravado?")) {
+                    db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, tipo: 'audio', data: criptografar(audioBase64), timestamp: Date.now() });
                     toggleAnexos();
                 }
+                // Reset garantido do timer
+                segundosRec = 0;
                 document.getElementById('timer-rec').innerText = "00:00";
             };
         };
@@ -283,7 +293,7 @@
     function exibirQR() {
         document.getElementById('qrcode').innerHTML = "";
         new QRCode(document.getElementById("qrcode"), { text: salaAtual, width: 200, height: 200, colorDark : "#0f172a", colorLight : "#ffffff" });
-        document.getElementById('txt-sala-qr').innerText = "CÓDIGO: " + salaAtual;
+        document.getElementById('txt-sala-qr').innerText = "SALA: " + salaAtual;
         document.getElementById('modalQR').style.display = 'flex';
         toggleConfig();
     }
