@@ -8,74 +8,46 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
-
-        :root {
-            --gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-            --bg-dark: #0f172a;
-        }
-
+        :root { --gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); --bg-dark: #0f172a; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
-        body, html { 
-            margin: 0; padding: 0; height: 100%; width: 100%;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: var(--bg-dark); overflow: hidden; position: fixed;
-        }
-
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-dark); overflow: hidden; position: fixed; }
         #app { width: 100%; max-width: 450px; height: 100%; margin: 0 auto; background: #fff; display: flex; flex-direction: column; position: relative; overflow: hidden; }
-
         #login, #login-convite { position: absolute; inset: 0; z-index: 100; background: var(--bg-dark); display: flex; flex-direction: column; align-items: center; padding: 30px; text-align: center; overflow-y: auto; }
         #login-convite { display: none; z-index: 101; }
-
         .raio-container { background: var(--gradient); width: 70px; height: 70px; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 35px; color: white; margin-bottom: 15px; transform: rotate(-10deg); flex-shrink: 0; }
-
         h1 { color: white; margin: 0; font-weight: 800; font-size: 28px; }
         p { color: #94a3b8; font-size: 14px; margin-bottom: 25px; }
-
         .card-auth { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 20px; width: 100%; display: flex; flex-direction: column; gap: 12px; }
-
         input { width: 100%; padding: 14px 18px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; font-size: 15px; outline: none; }
-
         .btn-main { background: var(--gradient); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 15px; }
         .btn-sec { background: rgba(255,255,255,0.1); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 14px; }
-
         .input-group { display: none; flex-direction: column; gap: 10px; margin-top: 5px; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-
         #chat { display: none; flex: 1; flex-direction: column; height: 100%; background: #f8fafc; }
         #topo { padding: 10px 15px; background: white; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
-        
         #mensagens { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
-        .msg { padding: 4px 12px; border-radius: 14px; max-width: 85%; font-size: 14px; position: relative; line-height: 1.4; word-wrap: break-word; }
+        .msg { padding: 8px 12px; border-radius: 14px; max-width: 85%; font-size: 14px; position: relative; line-height: 1.4; word-wrap: break-word; }
         .msg-out { align-self: flex-start; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-bottom-left-radius: 4px; }
         .msg-in { align-self: flex-end; background: var(--gradient); color: white; border-bottom-right-radius: 4px; }
         .msg small { font-size: 10px; font-weight: 800; display: block; margin-bottom: 2px; }
-
         .img-chat { max-width: 200px; max-height: 250px; border-radius: 8px; margin-top: 4px; display: block; object-fit: cover; }
-
         #envio { padding: 10px; background: white; display: flex; gap: 8px; border-top: 1px solid #f1f5f9; align-items: center; }
         #texto { background: #f1f5f9; border: none; flex: 1; height: 42px; padding: 0 15px; border-radius: 12px; color: #000; font-size: 15px; outline: none; }
-
         .btn-action { width: 42px; height: 42px; border-radius: 12px; border: none; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
         .btn-send { background: var(--gradient); color: white; font-size: 16px; }
-
         #modalQR { position: absolute; inset: 0; background: rgba(0,0,0,0.8); z-index: 200; display: none; align-items: center; justify-content: center; }
         .qr-card { background: white; padding: 25px; border-radius: 24px; text-align: center; }
         #qrcode-canvas { background: white; padding: 10px; border-radius: 15px; margin: 15px 0; }
-
         #menu-config, #menu-anexos { position: absolute; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 12px; display: none; flex-direction: column; z-index: 110; border: 1px solid #eee; }
         #menu-config { top: 55px; right: 15px; min-width: 170px; }
         #menu-anexos { bottom: 65px; left: 10px; }
         #menu-config button, #menu-anexos button { border: none; background: none; padding: 14px; text-align: left; font-size: 15px; font-weight: 600; cursor: pointer; }
-        
         .btn-download { color: inherit; text-decoration: underline; font-size: 11px; margin-top: 8px; display: inline-block; cursor: pointer; font-weight: bold; }
-        
         #status-nick { font-size: 11px; font-weight: bold; margin-left: 5px; }
         .spam-bloqueado { color: #ef4444 !important; }
     </style>
@@ -90,25 +62,21 @@
         <div class="card-auth">
             <button class="btn-main" onclick="showGroup('group-rapido')">⚡ Chat Rápido</button>
             <div id="group-rapido" class="input-group">
-                <input id="nick-rapido" placeholder="Seu apelido" maxlength="12">
+                <input id="nick-rapido" placeholder="Seu apelido" maxlength="12" onkeydown="if(event.key==='Enter') entrarAutomatico()">
                 <button class="btn-sec" onclick="entrarAutomatico()">Entrar Agora</button>
             </div>
-
             <button class="btn-main" onclick="showGroup('group-criar')">🔒 Criar Chat</button>
             <div id="group-criar" class="input-group">
-                <input id="nick-criar" placeholder="Seu apelido" maxlength="12">
-                <input id="nova-sala" placeholder="Nome da sala (Opcional)" maxlength="6">
-                <input id="nova-senha" type="password" placeholder="Senha (Opcional)" maxlength="8">
+                <input id="nick-criar" placeholder="Seu apelido" maxlength="12" onkeydown="if(event.key==='Enter') criarSalaPrivada()">
+                <input id="nova-sala" placeholder="Nome da sala (Opcional)" maxlength="6" onkeydown="if(event.key==='Enter') criarSalaPrivada()">
+                <input id="nova-senha" type="password" placeholder="Senha (Opcional)" maxlength="8" onkeydown="if(event.key==='Enter') criarSalaPrivada()">
                 <button class="btn-sec" onclick="criarSalaPrivada()">Criar e Entrar</button>
             </div>
-
             <button class="btn-main" onclick="showGroup('group-entrar')">🔑 Entrar em Chat</button>
             <div id="group-entrar" class="input-group">
-                <input id="nick-entrar" placeholder="Seu apelido" maxlength="12">
-                <input id="sala-manual" placeholder="Código da sala" maxlength="6">
-                <div id="box-senha-manual" style="display:none">
-                    <input id="senha-manual" type="password" placeholder="Senha da sala">
-                </div>
+                <input id="nick-entrar" placeholder="Seu apelido" maxlength="12" onkeydown="if(event.key==='Enter') entrar()">
+                <input id="sala-manual" placeholder="Código da sala" maxlength="6" onkeydown="if(event.key==='Enter') entrar()">
+                <div id="box-senha-manual" style="display:none"><input id="senha-manual" type="password" placeholder="Senha da sala" onkeydown="if(event.key==='Enter') entrar()"></div>
                 <button class="btn-sec" onclick="entrar()">Verificar e Entrar</button>
             </div>
         </div>
@@ -117,24 +85,18 @@
     <div id="login-convite">
         <div class="raio-container">⚡</div>
         <h1 id="label-sala-convite">Sala: ---</h1>
-        <p>Você foi convidado para esta conversa.</p>
+        <p>Você foi convidado.</p>
         <div class="card-auth">
-            <input id="nick-convite" placeholder="Seu apelido" maxlength="12">
-            <div id="box-senha-convite" style="display:none">
-                <input id="senha-convite" type="password" placeholder="Senha da sala" maxlength="8">
-            </div>
+            <input id="nick-convite" placeholder="Seu apelido" maxlength="12" onkeydown="if(event.key==='Enter') confirmarEntradaConvite()">
+            <div id="box-senha-convite" style="display:none"><input id="senha-convite" type="password" placeholder="Senha" maxlength="8" onkeydown="if(event.key==='Enter') confirmarEntradaConvite()"></div>
             <button class="btn-main" onclick="confirmarEntradaConvite()">Entrar no Chat</button>
-            <button class="btn-sec" style="opacity:0.6" onclick="sairDaSala()">Voltar ao Início</button>
+            <button class="btn-sec" style="opacity:0.6" onclick="sairDaSala()">Voltar</button>
         </div>
     </div>
 
     <div id="chat">
         <div id="topo">
-            <div>
-                <b id="labelSala">Sala: ---</b><br>
-                <span id="contagem" style="font-size:10px; color:#10b981">● 0 online</span>
-                <span id="status-nick"></span>
-            </div>
+            <div><b id="labelSala">Sala: ---</b><br><span id="contagem" style="font-size:10px; color:#10b981">● 0 online</span><span id="status-nick"></span></div>
             <button class="btn-action" style="background:#f1f5f9" onclick="event.stopPropagation(); toggleConfig()">⚙️</button>
             <div id="menu-config">
                 <button onclick="mudarNomeSala()">✏️ Mudar Nome (1x)</button>
@@ -145,262 +107,101 @@
         <div id="mensagens"></div>
         <div id="envio">
             <button class="btn-action" style="background:#f1f5f9; color:#64748b;" onclick="event.stopPropagation(); toggleAnexos()">+</button>
-            <div id="menu-anexos">
-                <button onclick="document.getElementById('img-input').click()">🖼️ Foto</button>
-                <button onclick="document.getElementById('file-input').click()">📄 Arquivo</button>
-            </div>
+            <div id="menu-anexos"><button onclick="document.getElementById('img-input').click()">🖼️ Foto</button><button onclick="document.getElementById('file-input').click()">📄 Arquivo</button></div>
             <input type="file" id="img-input" accept="image/*" style="display:none" onchange="processarAnexo(this, 'foto')">
             <input type="file" id="file-input" style="display:none" onchange="processarAnexo(this, 'arquivo')">
-            <input id="texto" type="text" placeholder="Mensagem..." maxlength="500">
+            <input id="texto" type="text" placeholder="Mensagem..." maxlength="500" onkeydown="if(event.key==='Enter') enviarTexto()">
             <button id="btn-enviar-msg" class="btn-action btn-send" onclick="enviarTexto()">➤</button>
         </div>
     </div>
-
-    <div id="modalQR" onclick="this.style.display='none'">
-        <div class="qr-card" onclick="event.stopPropagation()">
-            <div class="raio-container" style="width:50px; height:50px; font-size:24px; margin: 0 auto 10px;">⚡</div>
-            <h3 style="margin:0; font-weight:800;">Convidar</h3>
-            <div id="qrcode-wrapper"><canvas id="qrcode-canvas"></canvas></div>
-            <button class="btn-sec" style="color:#000; width:100%" onclick="document.getElementById('modalQR').style.display='none'">Fechar</button>
-        </div>
-    </div>
+    <div id="modalQR" onclick="this.style.display='none'"><div class="qr-card" onclick="event.stopPropagation()"><div class="raio-container" style="width:50px; height:50px; font-size:24px; margin: 0 auto 10px;">⚡</div><h3 style="margin:0; font-weight:800;">Convidar</h3><div id="qrcode-wrapper"><canvas id="qrcode-canvas"></canvas></div><button class="btn-sec" style="color:#000; width:100%" onclick="document.getElementById('modalQR').style.display='none'">Fechar</button></div></div>
 </div>
 
 <script>
-    // --- CONFIGURAÇÃO FIREBASE ---
-    const firebaseConfig = {
-        apiKey: "AIzaSyCkkkHhydC92yB5N364Ula4-aM2LUlSmG4",
-        authDomain: "ponte-virtual-rujan.firebaseapp.com",
-        databaseURL: "https://ponte-virtual-rujan-default-rtdb.firebaseio.com",
-        projectId: "ponte-virtual-rujan"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const auth = firebase.auth();
+    firebase.initializeApp({ apiKey: "AIzaSyCkkkHhydC92yB5N364Ula4-aM2LUlSmG4", authDomain: "ponte-virtual-rujan.firebaseapp.com", databaseURL: "https://ponte-virtual-rujan-default-rtdb.firebaseio.com", projectId: "ponte-virtual-rujan" });
+    const db = firebase.database(); const auth = firebase.auth();
+    let salaAtual, nickAtual, jaMudouNome = false, senhaSalaAtual = "", entrarTime = Date.now();
+    let historicoMsgs = [], ultimaMsgTexto = "", repeticoes = 0, nivelPunicao = 0, bloqueadoAte = 0;
 
-    // --- VARIÁVEIS DE CONTROLE ---
-    let salaAtual, nickAtual, jaMudouNome = false;
-    let senhaSalaAtual = "";
-    let entrarTime = Date.now();
-    
-    // --- VARIÁVEIS ANTI-SPAM ---
-    let historicoMsgs = [];
-    let ultimaMsgTexto = "";
-    let repeticoes = 0;
-    let nivelPunicao = 0; 
-    let bloqueadoAte = 0;
+    function showGroup(id) { document.querySelectorAll('.input-group').forEach(g => g.style.display = 'none'); document.getElementById(id).style.display = 'flex'; }
+    function toggleConfig() { const m = document.getElementById('menu-config'); m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; }
+    function toggleAnexos() { const m = document.getElementById('menu-anexos'); m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; }
+    async function garantirAuth() { if (!auth.currentUser) await auth.signInAnonymously(); }
+    function criptografar(t) { return senhaSalaAtual ? CryptoJS.AES.encrypt(t, senhaSalaAtual).toString() : t; }
+    function descriptografar(t) { if(!senhaSalaAtual) return t; try { return CryptoJS.AES.decrypt(t, senhaSalaAtual).toString(CryptoJS.enc.Utf8) || "Mensagem protegida"; } catch(e) { return "Erro de chave"; } }
 
-    // --- FUNÇÕES DE NAVEGAÇÃO (CORREÇÃO DO ERRO DO CONSOLE) ---
-    function showGroup(id) {
-        document.querySelectorAll('.input-group').forEach(g => g.style.display = 'none');
-        document.getElementById(id).style.display = 'flex';
-    }
-
-    function toggleConfig() { 
-        const m = document.getElementById('menu-config');
-        m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; 
-    }
-
-    function toggleAnexos() { 
-        const m = document.getElementById('menu-anexos');
-        m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; 
-    }
-
-    // --- SEGURANÇA E CRIPTOGRAFIA ---
-    async function garantirAuth() {
-        if (!auth.currentUser) await auth.signInAnonymously();
-    }
-
-    function criptografar(texto) {
-        if (!senhaSalaAtual) return texto;
-        return CryptoJS.AES.encrypt(texto, senhaSalaAtual).toString();
-    }
-
-    function descriptografar(textoCripto) {
-        if (!senhaSalaAtual) return textoCripto;
-        try {
-            const bytes = CryptoJS.AES.decrypt(textoCripto, senhaSalaAtual);
-            return bytes.toString(CryptoJS.enc.Utf8) || "Mensagem protegida";
-        } catch(e) { return "Erro de chave"; }
-    }
-
-    // --- LÓGICA ANTI-SPAM ---
-    function verificarSpam(texto) {
-        const agora = Date.now();
-        if (agora < bloqueadoAte) return true;
-
-        historicoMsgs.push(agora);
-        historicoMsgs = historicoMsgs.filter(t => agora - t < 2000);
-        
-        if (texto === ultimaMsgTexto) repeticoes++;
-        else { repeticoes = 1; ultimaMsgTexto = texto; }
-
-        if (historicoMsgs.length > 4 || repeticoes > 4) {
-            aplicarPunicao();
-            return true;
-        }
+    function verificarSpam(t) {
+        const agora = Date.now(); if (agora < bloqueadoAte) return true;
+        historicoMsgs.push(agora); historicoMsgs = historicoMsgs.filter(x => agora - x < 2000);
+        if (t === ultimaMsgTexto) repeticoes++; else { repeticoes = 1; ultimaMsgTexto = t; }
+        if (historicoMsgs.length > 4 || repeticoes > 4) { aplicarPunicao(); return true; }
         return false;
     }
 
     function aplicarPunicao() {
-        nivelPunicao++;
-        const agora = Date.now();
-        if (nivelPunicao === 1) {
-            bloqueadoAte = agora + 30000;
-            iniciarTimer(30);
-        } else if (nivelPunicao === 2) {
-            bloqueadoAte = agora + 600000;
-            iniciarTimer(600);
+        nivelPunicao++; const agora = Date.now();
+        if (nivelPunicao === 1) { 
+            bloqueadoAte = agora + 30000; iniciarTimer(30);
+            db.ref(`salas/${salaAtual}/mensagens`).push({ tipo: "sistema", texto: `⚠️ ${nickAtual} silenciado por 30s (Spam)`, timestamp: agora });
+        } else if (nivelPunicao === 2) { 
+            bloqueadoAte = agora + 600000; iniciarTimer(600);
+            db.ref(`salas/${salaAtual}/mensagens`).push({ tipo: "sistema", texto: `⚠️ ${nickAtual} silenciado por 10min (Reincidência)`, timestamp: agora });
         } else {
+            db.ref(`salas/${salaAtual}/mensagens`).push({ tipo: "sistema", texto: `🚫 ${nickAtual} foi expulso da sala por spam excessivo`, timestamp: agora });
             localStorage.setItem('ban_' + salaAtual, agora + 604800000);
-            alert("Banido por 1 semana por excesso de spam.");
-            sairDaSala();
+            setTimeout(() => sairDaSala(), 500);
         }
     }
 
     function iniciarTimer(s) {
-        const label = document.getElementById('status-nick');
-        const input = document.getElementById('texto');
-        input.disabled = true;
-        label.classList.add('spam-bloqueado');
-        let r = s;
-        const i = setInterval(() => {
-            r--;
-            label.innerText = `⚠️ ${nickAtual} (${r}s)`;
-            if (r <= 0) {
-                clearInterval(i);
-                label.innerText = "";
-                input.disabled = false;
-            }
+        const label = document.getElementById('status-nick'); const input = document.getElementById('texto');
+        input.disabled = true; label.classList.add('spam-bloqueado');
+        let r = s; const i = setInterval(() => {
+            r--; label.innerText = `⚠️ ${nickAtual} (${r}s)`;
+            if (r <= 0) { clearInterval(i); label.innerText = ""; input.disabled = false; label.classList.remove('spam-bloqueado'); }
         }, 1000);
     }
 
-    // --- ENTRADA E CONEXÃO ---
-    function checarBan(s) {
-        const b = localStorage.getItem('ban_' + s);
-        if (b && Date.now() < b) { alert("Você está banido desta sala temporariamente."); return true; }
-        return false;
-    }
+    function checarBan(s) { const b = localStorage.getItem('ban_' + s); if (b && Date.now() < b) { alert("Você está banido desta sala por 1 semana."); return true; } return false; }
 
     async function inicializarApp() {
-        document.addEventListener('click', () => {
-            document.getElementById('menu-config').style.display = 'none';
-            document.getElementById('menu-anexos').style.display = 'none';
-        });
-
+        document.addEventListener('click', () => { document.getElementById('menu-config').style.display = 'none'; document.getElementById('menu-anexos').style.display = 'none'; });
         await garantirAuth();
-
-        const sN = sessionStorage.getItem('swiftly_nick');
-        const sS = sessionStorage.getItem('swiftly_sala');
-        const sP = sessionStorage.getItem('swiftly_pw') || "";
-        const params = new URLSearchParams(window.location.search);
-        const salaConv = params.get('sala');
-
+        const sN = sessionStorage.getItem('swiftly_nick'), sS = sessionStorage.getItem('swiftly_sala'), sP = sessionStorage.getItem('swiftly_pw') || "";
+        const params = new URLSearchParams(window.location.search), salaConv = params.get('sala');
         if (salaConv) {
-            salaAtual = salaConv.toUpperCase();
-            document.getElementById('login').style.display = 'none';
-            document.getElementById('login-convite').style.display = 'flex';
+            salaAtual = salaConv.toUpperCase(); document.getElementById('login').style.display = 'none'; document.getElementById('login-convite').style.display = 'flex';
             document.getElementById('label-sala-convite').innerText = "Sala: " + salaAtual;
-            db.ref(`salas/${salaAtual}/config/senha`).once('value', snap => {
-                if (snap.val()) document.getElementById('box-senha-convite').style.display = 'block';
-            });
-        } else if (sN && sS) {
-            senhaSalaAtual = sP;
-            conectar(sN, sS, false);
-        }
+            db.ref(`salas/${salaAtual}/config/senha`).once('value', snap => { if (snap.val()) document.getElementById('box-senha-convite').style.display = 'block'; });
+        } else if (sN && sS) { senhaSalaAtual = sP; conectar(sN, sS, false); }
     }
 
-    async function entrarAutomatico() {
-        const n = document.getElementById('nick-rapido').value.trim();
-        if(!n) return alert("Nick!");
-        const s = Math.random().toString(36).substring(2, 8).toUpperCase();
-        senhaSalaAtual = s;
-        sessionStorage.setItem('swiftly_pw', s);
-        conectar(n, s, true);
-    }
-
-    async function criarSalaPrivada() {
-        const n = document.getElementById('nick-criar').value.trim();
-        const s = document.getElementById('nova-sala').value.trim().toUpperCase() || Math.random().toString(36).substring(2, 8).toUpperCase();
-        const pw = document.getElementById('nova-senha').value.trim();
-        if(!n) return alert("Nick!");
-        senhaSalaAtual = pw || s;
-        sessionStorage.setItem('swiftly_pw', senhaSalaAtual);
-        if(pw) db.ref(`salas/${s}/config`).set({senha:pw});
-        conectar(n, s, true);
-    }
-
-    async function entrar() {
-        const n = document.getElementById('nick-entrar').value.trim();
-        const s = document.getElementById('sala-manual').value.trim().toUpperCase();
-        if(!n || !s) return alert("Campos vazios!");
-        if(checarBan(s)) return;
-
-        db.ref(`salas/${s}`).once('value', snap => {
-            if(!snap.exists()) return alert("Sala não existe.");
-            const pw = snap.child('config/senha').val();
-            const box = document.getElementById('box-senha-manual');
-            if(pw && box.style.display === 'none') {
-                box.style.display = 'block';
-                alert("Senha necessária!");
-            } else {
-                const pIn = document.getElementById('senha-manual').value;
-                if(pw && pIn !== pw) return alert("Senha incorreta!");
-                senhaSalaAtual = pIn || s;
-                sessionStorage.setItem('swiftly_pw', senhaSalaAtual);
-                conectar(n, s, true);
-            }
-        });
-    }
-
-    async function confirmarEntradaConvite() {
-        const n = document.getElementById('nick-convite').value.trim();
-        const pIn = document.getElementById('senha-convite').value.trim();
-        if(!n) return alert("Nick!");
-        if(checarBan(salaAtual)) return;
-
-        db.ref(`salas/${salaAtual}/config/senha`).once('value', snap => {
-            const pw = snap.val();
-            if(pw && pIn !== pw) return alert("Senha errada!");
-            senhaSalaAtual = pIn || salaAtual;
-            sessionStorage.setItem('swiftly_pw', senhaSalaAtual);
-            conectar(n, salaAtual, true);
-            document.getElementById('login-convite').style.display = 'none';
-        });
-    }
+    async function entrarAutomatico() { const n = document.getElementById('nick-rapido').value.trim(); if(!n) return alert("Nick!"); const s = Math.random().toString(36).substring(2, 8).toUpperCase(); senhaSalaAtual = s; sessionStorage.setItem('swiftly_pw', s); conectar(n, s, true); }
+    async function criarSalaPrivada() { const n = document.getElementById('nick-criar').value.trim(), s = document.getElementById('nova-sala').value.trim().toUpperCase() || Math.random().toString(36).substring(2, 8).toUpperCase(), pw = document.getElementById('nova-senha').value.trim(); if(!n) return alert("Nick!"); senhaSalaAtual = pw || s; sessionStorage.setItem('swiftly_pw', senhaSalaAtual); if(pw) db.ref(`salas/${s}/config`).set({senha:pw}); conectar(n, s, true); }
+    async function entrar() { const n = document.getElementById('nick-entrar').value.trim(), s = document.getElementById('sala-manual').value.trim().toUpperCase(); if(!n || !s) return alert("Campos vazios!"); if(checarBan(s)) return; db.ref(`salas/${s}`).once('value', snap => { if(!snap.exists()) return alert("Sala não existe."); const pw = snap.child('config/senha').val(), box = document.getElementById('box-senha-manual'); if(pw && box.style.display === 'none') { box.style.display = 'block'; alert("Senha necessária!"); } else { const pIn = document.getElementById('senha-manual').value; if(pw && pIn !== pw) return alert("Senha incorreta!"); senhaSalaAtual = pIn || s; sessionStorage.setItem('swiftly_pw', senhaSalaAtual); conectar(n, s, true); } }); }
+    async function confirmarEntradaConvite() { const n = document.getElementById('nick-convite').value.trim(), pIn = document.getElementById('senha-convite').value.trim(); if(!n) return alert("Nick!"); if(checarBan(salaAtual)) return; db.ref(`salas/${salaAtual}/config/senha`).once('value', snap => { const pw = snap.val(); if(pw && pIn !== pw) return alert("Senha errada!"); senhaSalaAtual = pIn || salaAtual; sessionStorage.setItem('swiftly_pw', senhaSalaAtual); conectar(n, salaAtual, true); document.getElementById('login-convite').style.display = 'none'; }); }
 
     function conectar(n, s, avisar) {
-        nickAtual = n; salaAtual = s;
-        sessionStorage.setItem('swiftly_nick', n);
-        sessionStorage.setItem('swiftly_sala', s);
-        document.getElementById('login').style.display = "none";
-        document.getElementById('chat').style.display = "flex";
+        nickAtual = n; salaAtual = s; sessionStorage.setItem('swiftly_nick', n); sessionStorage.setItem('swiftly_sala', s);
+        document.getElementById('login').style.display = "none"; document.getElementById('chat').style.display = "flex";
         document.getElementById('labelSala').innerText = "Sala: " + s;
-        if(avisar) db.ref(`salas/${s}/mensagens`).push({ tipo: "sistema", texto: `${n} entrou`, timestamp: Date.now() });
+        if(avisar) db.ref(`salas/${s}/mensagens`).push({ tipo: "sistema", texto: `⚡ ${n} entrou na conversa`, timestamp: Date.now() });
         iniciarChat();
     }
 
     function iniciarChat() {
         const refM = db.ref(`salas/${salaAtual}/mensagens`);
-        db.ref(`salas/${salaAtual}/usuarios/${auth.currentUser.uid}`).set({nick: nickAtual, online: true}).then(() => {
-            db.ref(`salas/${salaAtual}/usuarios/${auth.currentUser.uid}`).onDisconnect().remove();
-        });
-        
+        db.ref(`salas/${salaAtual}/usuarios/${auth.currentUser.uid}`).set({nick: nickAtual, online: true}).then(() => { db.ref(`salas/${salaAtual}/usuarios/${auth.currentUser.uid}`).onDisconnect().remove(); });
         refM.on("child_added", s => renderizar(s.val(), s.key));
-        db.ref(`salas/${salaAtual}/usuarios`).on("value", s => {
-            document.getElementById('contagem').innerText = `● ${s.val() ? Object.keys(s.val()).length : 0} online`;
-        });
+        db.ref(`salas/${salaAtual}/usuarios`).on("value", s => { document.getElementById('contagem').innerText = `● ${s.val() ? Object.keys(s.val()).length : 0} online`; });
     }
 
     function renderizar(m, key) {
-        const div = document.createElement("div");
-        const isM = m.nick === nickAtual;
+        const div = document.createElement("div"); const isM = m.nick === nickAtual;
         div.className = `msg ${isM ? 'msg-in' : 'msg-out'}`;
-        
-        if(m.tipo === "sistema") {
-            div.innerHTML = `<center><small style="color:#94a3b8">${m.texto}</small></center>`;
-        } else {
-            let nC = `hsl(${Math.abs(m.nick.split('').reduce((a,b)=>a+b.charCodeAt(0),0)%360)}, 70%, 75%)`;
+        if(m.tipo === "sistema") { div.innerHTML = `<center><small style="color:#94a3b8">${m.texto}</small></center>`; } else {
+            let hash = 0; for (let i = 0; i < m.nick.length; i++) hash = m.nick.charCodeAt(i) + ((hash << 5) - hash);
+            let nC = `hsl(${Math.abs(hash % 360)}, 75%, 75%)`;
             let txt = descriptografar(m.texto);
             let html = `<small style="color:${nC}">${m.nick}</small>`;
             if(m.tipo === "foto") html += `<img src="${descriptografar(m.url)}" class="img-chat"><a href="${descriptografar(m.url)}" download class="btn-download">Baixar</a>`;
@@ -408,13 +209,11 @@
             else html += txt;
             div.innerHTML = html;
         }
-        document.getElementById('mensagens').appendChild(div);
-        document.getElementById('mensagens').scrollTop = document.getElementById('mensagens').scrollHeight;
+        document.getElementById('mensagens').appendChild(div); document.getElementById('mensagens').scrollTop = document.getElementById('mensagens').scrollHeight;
     }
 
     function enviarTexto() {
-        const t = document.getElementById('texto');
-        const val = t.value.trim();
+        const t = document.getElementById('texto'); const val = t.value.trim();
         if(!val || verificarSpam(val)) return;
         db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, texto: criptografar(val), timestamp: Date.now() });
         t.value = "";
@@ -422,14 +221,12 @@
 
     function processarAnexo(input, tipo) {
         const f = input.files[0]; if(!f || verificarSpam("file")) return;
-        const r = new FileReader();
-        r.readAsDataURL(f);
+        const r = new FileReader(); r.readAsDataURL(f);
         r.onload = e => {
             if(tipo === 'foto') {
                 const img = new Image(); img.src = e.target.result;
                 img.onload = () => {
-                    const c = document.createElement('canvas');
-                    const ctx = c.getContext('2d');
+                    const c = document.createElement('canvas'); const ctx = c.getContext('2d');
                     const max = 800; let w = img.width, h = img.height;
                     if(w > h) { if(w > max){ h *= max/w; w = max; } } else { if(h > max){ w *= max/h; h = max; } }
                     c.width = w; c.height = h; ctx.drawImage(img, 0, 0, w, h);
@@ -444,29 +241,15 @@
     }
 
     function mudarNomeSala() {
-        if(jaMudouNome) return;
-        let n = prompt("Novo nome (6 carac):");
-        if(n) { 
-            n = n.toUpperCase().substring(0,6).replace(/[^A-Z0-9]/g, "");
-            db.ref(`salas/${salaAtual}/mensagens`).push({tipo: "sistema", texto: `${nickAtual} mudou o nome da sala`, timestamp: Date.now()}); 
-            setTimeout(() => { salaAtual = n; sessionStorage.setItem('swiftly_sala', n); document.getElementById('labelSala').innerText = "Sala: " + n; jaMudouNome = true; }, 500);
-        }
+        if(jaMudouNome) return; let n = prompt("Novo nome (6 carac):");
+        if(n) { n = n.toUpperCase().substring(0,6).replace(/[^A-Z0-9]/g, ""); db.ref(`salas/${salaAtual}/mensagens`).push({tipo: "sistema", texto: `${nickAtual} mudou o nome da sala para ${n}`, timestamp: Date.now()}); setTimeout(() => { salaAtual = n; sessionStorage.setItem('swiftly_sala', n); document.getElementById('labelSala').innerText = "Sala: " + n; jaMudouNome = true; }, 500); }
     }
-
     function sairDaSala() { sessionStorage.clear(); window.location.href = window.location.pathname; }
     function baixarArq(b64, n) { const l = document.createElement("a"); l.href = b64; l.download = n; l.click(); }
-
     function exibirQR() {
-        const wrap = document.getElementById("qrcode-wrapper");
-        wrap.innerHTML = '<div id="temp-qr" style="display:none"></div><canvas id="qrcode-canvas"></canvas>';
+        const wrap = document.getElementById("qrcode-wrapper"); wrap.innerHTML = '<div id="temp-qr" style="display:none"></div><canvas id="qrcode-canvas"></canvas>';
         new QRCode(document.getElementById("temp-qr"), { text: window.location.href.split('?')[0] + "?sala=" + salaAtual, width: 200, height: 200 });
-        setTimeout(() => {
-            const img = document.querySelector("#temp-qr img");
-            const can = document.getElementById("qrcode-canvas");
-            can.width = 200; can.height = 200;
-            can.getContext("2d").drawImage(img, 0, 0);
-            document.getElementById('modalQR').style.display = "flex";
-        }, 200);
+        setTimeout(() => { const img = document.querySelector("#temp-qr img"), can = document.getElementById("qrcode-canvas"); can.width = 200; can.height = 200; can.getContext("2d").drawImage(img, 0, 0); document.getElementById('modalQR').style.display = "flex"; }, 200);
     }
 </script>
 </body>
