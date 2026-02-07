@@ -44,14 +44,15 @@
         #menu-config, #menu-anexos { position: absolute; background: white; box-shadow: 0 15px 35px rgba(0,0,0,0.2); border-radius: 18px; display: none; flex-direction: column; z-index: 200; min-width: 220px; overflow: hidden; }
         #menu-config { top: 65px; right: 15px; }
         #menu-anexos { bottom: 75px; left: 15px; }
-        .menu-btn { border: none; background: none; padding: 15px; text-align: left; font-weight: 600; cursor: pointer; border-bottom: 1px solid #f8fafc; color: #1e293b; transition: 0.2s; }
-
-        #modalQR { position: absolute; inset: 0; background: rgba(15, 23, 42, 0.9); z-index: 500; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        .qr-card { background: white; padding: 30px; border-radius: 30px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
-        #qrcode img { margin: 0 auto; border: 10px solid #fff; border-radius: 10px; }
+        .menu-btn { border: none; background: none; padding: 15px; text-align: left; font-weight: 600; cursor: pointer; border-bottom: 1px solid #f8fafc; color: #1e293b; }
 
         .rec-active { color: #ef4444 !important; background: #fee2e2 !important; }
-        .expired { font-style: italic; opacity: 0.6; }
+        .burn-on { background: #fee2e2 !important; border: 1px solid #ef4444 !important; color: #ef4444 !important; }
+
+        #modalQR { position: absolute; inset: 0; background: rgba(15, 23, 42, 0.9); z-index: 500; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .qr-card { background: white; padding: 30px; border-radius: 30px; text-align: center; }
+        
+        audio { height: 35px; width: 200px; margin-top: 5px; border-radius: 5px; }
     </style>
 </head>
 <body onload="inicializarApp()">
@@ -64,24 +65,24 @@
         <div class="card-auth">
             <button class="btn-main" onclick="showGroup('group-rapido')">⚡ Chat Rápido</button>
             <div id="group-rapido" class="input-group">
-                <input id="nick-rapido" placeholder="Seu apelido" onkeydown="if(event.key==='Enter') entrarAutomatico()">
+                <input id="nick-rapido" placeholder="Seu apelido">
                 <button class="btn-sec" onclick="entrarAutomatico()">Entrar Agora</button>
             </div>
             <button class="btn-main" onclick="showGroup('group-criar')">🔒 Criar Chat</button>
             <div id="group-criar" class="input-group">
                 <input id="nick-criar" placeholder="Seu apelido">
                 <input id="nova-sala" placeholder="Nome da sala">
-                <input id="nova-senha" type="password" placeholder="Senha (Opcional)" onkeydown="if(event.key==='Enter') criarSalaPrivada()">
+                <input id="nova-senha" type="password" placeholder="Senha (Opcional)">
                 <button class="btn-sec" onclick="criarSalaPrivada()">Criar</button>
             </div>
             <button class="btn-main" onclick="showGroup('group-entrar')">🔑 Entrar em Chat</button>
             <div id="group-entrar" class="input-group">
                 <input id="nick-entrar" placeholder="Seu apelido">
-                <input id="sala-manual" placeholder="Código da sala" onkeydown="if(event.key==='Enter') entrarNoChat()">
+                <input id="sala-manual" placeholder="Código da sala">
                 <div id="box-senha" style="display:none; margin-top:5px">
-                    <input id="senha-manual" type="password" placeholder="Senha da sala" onkeydown="if(event.key==='Enter') entrarNoChat()">
+                    <input id="senha-manual" type="password" placeholder="Senha da sala">
                 </div>
-                <button class="btn-sec" onclick="entrarNoChat()">Verificar e Entrar</button>
+                <button class="btn-sec" onclick="entrarNoChat()">Entrar</button>
             </div>
         </div>
     </div>
@@ -89,8 +90,8 @@
     <div id="chat">
         <div id="topo">
             <div>
-                <b id="labelSala" style="font-size: 18px; color: #1e293b">Sala: ---</b><br>
-                <span id="contagem" style="font-size:12px; color:#10b981; font-weight: 600">● 0 online</span>
+                <b id="labelSala">Sala: ---</b><br>
+                <span id="contagem" style="font-size:12px; color:#10b981">● 0 online</span>
             </div>
             <button class="btn-action" onclick="toggleConfig()">⚙️</button>
             <div id="menu-config">
@@ -104,24 +105,22 @@
         <div id="envio">
             <button class="btn-action" onclick="toggleAnexos()">+</button>
             <div id="menu-anexos">
-                <button class="menu-btn" onclick="document.getElementById('file-input').click()">🖼️ Foto (10MB)</button>
-                <button class="menu-btn" onclick="document.getElementById('doc-input').click()">📁 Documento (2MB)</button>
-                <button id="btn-mic-plus" class="menu-btn" onmousedown="startRecording()" onmouseup="stopRecording()" ontouchstart="startRecording()" ontouchend="stopRecording()">🎤 Áudio (<span id="timer-rec">00:00</span>)</button>
+                <button class="menu-btn" onclick="document.getElementById('file-input').click()">🖼️ Foto</button>
+                <button class="menu-btn" onclick="document.getElementById('doc-input').click()">📁 Arquivo</button>
+                <button id="btn-mic-plus" class="menu-btn" onmousedown="startRecording()" onmouseup="stopRecording()" ontouchstart="startRecording()" ontouchend="stopRecording()">🎤 Gravar (<span id="timer-rec">00:00</span>)</button>
                 <input type="file" id="file-input" style="display:none" accept="image/*" onchange="processarFoto(this)">
                 <input type="file" id="doc-input" style="display:none" onchange="processarDocumento(this)">
             </div>
             <button id="burn-btn" class="btn-action" onclick="toggleBurn()">🔥</button>
-            <input id="texto" placeholder="Escreva algo..." onkeydown="if(event.key==='Enter') enviarTexto()">
-            <button class="btn-action" style="background:var(--gradient); color:white; border-radius: 12px" onclick="enviarTexto()">➤</button>
+            <input id="texto" placeholder="Mensagem..." onkeydown="if(event.key==='Enter') enviarTexto()">
+            <button class="btn-action" style="background:var(--gradient); color:white" onclick="enviarTexto()">➤</button>
         </div>
     </div>
 
     <div id="modalQR" onclick="this.style.display='none'">
         <div class="qr-card" onclick="event.stopPropagation()">
-            <h3 style="margin-top:0; color:#1e293b">Convite da Sala</h3>
             <div id="qrcode"></div>
-            <p id="txt-sala-qr" style="color:#64748b; font-weight: 800; margin: 15px 0"></p>
-            <button class="btn-main" style="width:100%" onclick="document.getElementById('modalQR').style.display='none'">Fechar</button>
+            <button class="btn-main" style="width:100%; margin-top:15px" onclick="document.getElementById('modalQR').style.display='none'">Fechar</button>
         </div>
     </div>
 </div>
@@ -129,49 +128,37 @@
 <script>
     firebase.initializeApp({ apiKey: "AIzaSyCkkkHhydC92yB5N364Ula4-aM2LUlSmG4", authDomain: "ponte-virtual-rujan.firebaseapp.com", databaseURL: "https://ponte-virtual-rujan-default-rtdb.firebaseio.com", projectId: "ponte-virtual-rujan" });
     const db = firebase.database(); const auth = firebase.auth();
-    let salaAtual, nickAtual, isBurn = false, mediaRecorder, audioChunks = [], timerInterval, segundosRec = 0, ultimaMsgTime = 0, ultimaMsgTexto = "", errosSenha = 0;
+    let salaAtual, nickAtual, isBurn = false, mediaRecorder, audioChunks = [], timerInterval, segundosRec = 0, errosSenha = 0;
 
     function showGroup(id) { document.querySelectorAll('.input-group').forEach(g => g.style.display = 'none'); document.getElementById(id).style.display = 'flex'; }
     function toggleConfig() { const m = document.getElementById('menu-config'); m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; }
     function toggleAnexos() { const m = document.getElementById('menu-anexos'); m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; }
-    function toggleBurn() { isBurn = !isBurn; document.getElementById('burn-btn').style.background = isBurn ? '#fee2e2' : '#f1f5f9'; }
+    function toggleBurn() { isBurn = !isBurn; document.getElementById('burn-btn').classList.toggle('burn-on', isBurn); }
 
     function criptografar(t) { return CryptoJS.AES.encrypt(t, salaAtual).toString(); }
-    function descriptografar(t) { try { return CryptoJS.AES.decrypt(t, salaAtual).toString(CryptoJS.enc.Utf8); } catch(e) { return "..."; } }
+    function descriptografar(t) { try { let bytes = CryptoJS.AES.decrypt(t, salaAtual); return bytes.toString(CryptoJS.enc.Utf8); } catch(e) { return ""; } }
 
     function entrarNoChat() {
         const n = document.getElementById('nick-entrar').value;
         const s = document.getElementById('sala-manual').value.toUpperCase();
         if(!n || !s) return;
         db.ref(`salas/${s}`).once('value', snap => {
-            if(!snap.exists()) { alert("Sala inexistente!"); return; }
+            if(!snap.exists()) return;
             const pw = snap.child('config/senha').val();
-            if(pw && document.getElementById('box-senha').style.display === 'none') {
-                document.getElementById('box-senha').style.display = 'block';
-                return;
-            }
-            const pInput = document.getElementById('senha-manual').value;
-            if(pw && pInput !== pw) {
+            if(pw && document.getElementById('box-senha').style.display === 'none') { document.getElementById('box-senha').style.display = 'block'; return; }
+            const pI = document.getElementById('senha-manual').value;
+            if(pw && pI !== pw) {
                 errosSenha++;
-                if(errosSenha >= 3) { 
-                    salaAtual = "FAKE_" + Math.random().toString(36).substring(7).toUpperCase(); 
-                    nickAtual = n; 
-                    conectar(); 
-                } else { alert("Senha incorreta!"); }
+                if(errosSenha >= 3) { salaAtual = "FAKE_"+Math.random().toString(36).substring(5).toUpperCase(); nickAtual = n; conectar(); }
+                else alert("Senha incorreta");
                 return;
             }
             nickAtual = n; salaAtual = s; conectar();
         });
     }
 
-    function entrarAutomatico() { nickAtual = document.getElementById('nick-rapido').value; if(!nickAtual) return; salaAtual = Math.random().toString(36).substring(7).toUpperCase(); conectar(); }
-    function criarSalaPrivada() { 
-        nickAtual = document.getElementById('nick-criar').value; 
-        salaAtual = document.getElementById('nova-sala').value.toUpperCase() || Math.random().toString(36).substring(7).toUpperCase();
-        const p = document.getElementById('nova-senha').value;
-        if(p) db.ref(`salas/${salaAtual}/config`).set({senha: p});
-        conectar();
-    }
+    function entrarAutomatico() { nickAtual = document.getElementById('nick-rapido').value; if(!nickAtual) return; salaAtual = "CHAT_"+Math.random().toString(36).substring(7).toUpperCase(); conectar(); }
+    function criarSalaPrivada() { nickAtual = document.getElementById('nick-criar').value; salaAtual = document.getElementById('nova-sala').value.toUpperCase(); const p = document.getElementById('nova-senha').value; if(p) db.ref(`salas/${salaAtual}/config`).set({senha: p}); conectar(); }
 
     function conectar() {
         localStorage.setItem('swift_n', nickAtual); localStorage.setItem('swift_s', salaAtual);
@@ -185,7 +172,6 @@
     function iniciarChat() {
         db.ref(`salas/${salaAtual}/mensagens`).on("child_added", s => renderizar(s.val(), s.key));
         db.ref(`salas/${salaAtual}/usuarios/${auth.currentUser.uid}`).set(true);
-        db.ref(`salas/${salaAtual}/usuarios/${auth.currentUser.uid}`).onDisconnect().remove();
         db.ref(`salas/${salaAtual}/usuarios`).on("value", s => { document.getElementById('contagem').innerText = `● ${s.val() ? Object.keys(s.val()).length : 0} online`; });
     }
 
@@ -196,16 +182,17 @@
         div.className = `msg ${isM ? 'msg-in' : 'msg-out'}`;
         let cont = `<small>${m.nick}</small>`;
         
-        if(m.expired) { cont += `<span class="expired">Mensagem expirada</span>`; } 
-        else if(m.tipo === 'audio') { cont += `<audio controls src="${descriptografar(m.data)}"></audio>`; } 
-        else if(m.tipo === 'image') { cont += `<img src="${descriptografar(m.data)}" style="max-width:100%; border-radius:10px" onclick="window.open(this.src)"> <br><small>Expira em breve</small>`; iniciarExpiracao(key, isM); } 
-        else if(m.tipo === 'file') { cont += `<a href="${descriptografar(m.data)}" download="Doc" style="color:inherit; font-weight:bold">📁 Documento Recebido</a> <br><small>Expira em breve</small>`; iniciarExpiracao(key, isM); } 
-        else { cont += descriptografar(m.texto); }
+        let dataDec = descriptografar(m.data || "");
+        
+        if(m.expired) cont += `<span style="opacity:0.5; font-style:italic">Mídia Expirada</span>`;
+        else if(m.tipo === 'audio') cont += `<audio controls src="${dataDec}"></audio>`;
+        else if(m.tipo === 'image') { cont += `<img src="${dataDec}" style="max-width:100%;border-radius:10px" onclick="window.open(this.src)">`; iniciarExp(key, isM); }
+        else cont += descriptografar(m.texto);
 
         if(m.burn && !m.expired) {
-            let tempo = 15; cont += `<br><span id="burn-${key}" style="font-size:9px; color:red">🔥 ${tempo}s</span>`;
-            let itv = setInterval(() => { tempo--; if(document.getElementById(`burn-${key}`)) document.getElementById(`burn-${key}`).innerText = `🔥 ${tempo}s`;
-                if(tempo <= 0) { clearInterval(itv); if(isM) db.ref(`salas/${salaAtual}/mensagens/${key}`).remove(); document.getElementById(key)?.remove(); }
+            let t = 15; cont += `<br><span id="b-${key}" style="color:red;font-size:10px">🔥 ${t}s</span>`;
+            let iv = setInterval(() => { t--; if(document.getElementById(`b-${key}`)) document.getElementById(`b-${key}`).innerText = `🔥 ${t}s`;
+                if(t<=0){ clearInterval(iv); if(isM) db.ref(`salas/${salaAtual}/mensagens/${key}`).remove(); document.getElementById(key)?.remove(); }
             }, 1000);
         }
         div.innerHTML = cont;
@@ -213,63 +200,31 @@
         document.getElementById('mensagens').scrollTop = document.getElementById('mensagens').scrollHeight;
     }
 
-    function iniciarExpiracao(key, isOwner) { setTimeout(() => { if(isOwner) db.ref(`salas/${salaAtual}/mensagens/${key}`).update({expired: true, data: ""}); const el = document.getElementById(key); if(el) el.innerHTML = `<small>Sistema</small><span class="expired">Mensagem expirada</span>`; }, 60000); }
+    function iniciarExp(k, o) { setTimeout(() => { if(o) db.ref(`salas/${salaAtual}/mensagens/${k}`).update({expired:true, data:""}); }, 60000); }
 
     function enviarTexto() {
-        const agora = Date.now();
-        const textoVal = document.getElementById('texto').value.trim();
-        if(!textoVal) return;
-        if(agora - ultimaMsgTime < 1000 || (textoVal === ultimaMsgTexto && (agora - ultimaMsgTime < 5000))) { return; }
-        
-        ultimaMsgTime = agora; ultimaMsgTexto = textoVal;
-        db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, texto: criptografar(textoVal), burn: isBurn, timestamp: Date.now() });
-        document.getElementById('texto').value = ""; if(isBurn) toggleBurn();
-    }
-
-    function processarFoto(input) {
-        const file = input.files[0]; if(!file || file.size > 10 * 1024 * 1024) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
-                const canvas = document.createElement('canvas'); const max = 800; let w = img.width, h = img.height;
-                if(w > h) { if(w > max){ h *= max/w; w = max; } } else { if(h > max){ w *= max/h; h = max; } }
-                canvas.width = w; canvas.height = h; canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, tipo: 'image', data: criptografar(canvas.toDataURL('image/jpeg', 0.7)), timestamp: Date.now() });
-                toggleAnexos();
-            };
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-    }
-
-    function processarDocumento(input) {
-        const file = input.files[0]; if(!file || file.size > 2 * 1024 * 1024) return;
-        const reader = new FileReader();
-        reader.onload = e => { db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, tipo: 'file', data: criptografar(e.target.result), timestamp: Date.now() }); toggleAnexos(); };
-        reader.readAsDataURL(file);
+        const t = document.getElementById('texto'); if(!t.value) return;
+        db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, texto: criptografar(t.value), burn: isBurn, timestamp: Date.now() });
+        t.value = "";
     }
 
     async function startRecording() {
         audioChunks = []; segundosRec = 0;
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
-            mediaRecorder.start();
-            document.getElementById('btn-mic-plus').classList.add('rec-active');
-            timerInterval = setInterval(() => { 
-                segundosRec++; 
-                let m = Math.floor(segundosRec / 60); let s = segundosRec % 60;
-                document.getElementById('timer-rec').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-                if(segundosRec >= 45) stopRecording();
-            }, 1000);
-        } catch(e) { alert("Microfone não disponível."); }
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = e => { if(e.data.size > 0) audioChunks.push(e.data); };
+        mediaRecorder.start();
+        document.getElementById('btn-mic-plus').classList.add('rec-active');
+        timerInterval = setInterval(() => {
+            segundosRec++;
+            document.getElementById('timer-rec').innerText = `00:${(segundosRec % 60).toString().padStart(2,'0')}`;
+            if(segundosRec >= 45) stopRecording();
+        }, 1000);
     }
 
     function stopRecording() {
         if(!mediaRecorder || mediaRecorder.state === 'inactive') return;
-        mediaRecorder.stop(); 
+        mediaRecorder.stop();
         clearInterval(timerInterval);
         document.getElementById('btn-mic-plus').classList.remove('rec-active');
         
@@ -278,30 +233,29 @@
             const reader = new FileReader();
             reader.readAsDataURL(blob);
             reader.onloadend = () => {
-                const audioBase64 = reader.result;
-                if(audioBase64.length > 100 && confirm("Enviar áudio gravado?")) {
-                    db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, tipo: 'audio', data: criptografar(audioBase64), timestamp: Date.now() });
-                    toggleAnexos();
+                if(confirm("Enviar áudio?")) {
+                    db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, tipo: 'audio', data: criptografar(reader.result), timestamp: Date.now() });
                 }
-                // Reset garantido do timer
-                segundosRec = 0;
+                // RESET DO CRONÔMETRO
                 document.getElementById('timer-rec').innerText = "00:00";
+                segundosRec = 0;
+                toggleAnexos();
             };
         };
     }
 
-    function exibirQR() {
-        document.getElementById('qrcode').innerHTML = "";
-        new QRCode(document.getElementById("qrcode"), { text: salaAtual, width: 200, height: 200, colorDark : "#0f172a", colorLight : "#ffffff" });
-        document.getElementById('txt-sala-qr').innerText = "SALA: " + salaAtual;
-        document.getElementById('modalQR').style.display = 'flex';
-        toggleConfig();
+    function processarFoto(input) {
+        const file = input.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+            db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, tipo: 'image', data: criptografar(e.target.result), timestamp: Date.now() });
+            toggleAnexos();
+        };
+        reader.readAsDataURL(file);
     }
 
-    async function inicializarApp() {
-        const sN = localStorage.getItem('swift_n'), sS = localStorage.getItem('swift_s');
-        if(sN && sS) { nickAtual = sN; salaAtual = sS; conectar(); }
-    }
+    function exibirQR() { document.getElementById('qrcode').innerHTML = ""; new QRCode(document.getElementById("qrcode"), salaAtual); document.getElementById('modalQR').style.display='flex'; toggleConfig(); }
+    function inicializarApp() { const sN = localStorage.getItem('swift_n'), sS = localStorage.getItem('swift_s'); if(sN && sS) { nickAtual = sN; salaAtual = sS; conectar(); } }
     function sairDaSala() { localStorage.clear(); location.reload(); }
 </script>
 </body>
