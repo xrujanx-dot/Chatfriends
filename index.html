@@ -35,7 +35,7 @@
         .msg { padding: 10px 14px; border-radius: 16px; max-width: 85%; font-size: 14px; position: relative; }
         .msg-out { align-self: flex-start; background: white; color: #000; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .msg-in { align-self: flex-end; background: var(--gradient); color: white; }
-        .msg-sys { align-self: center; background: #fee2e2; color: #b91c1c; font-size: 11px; font-weight: bold; border: 1px solid #fecaca; }
+        .msg-sys { align-self: center; background: #fee2e2; color: #b91c1c; font-size: 11px; font-weight: bold; border: 1px solid #fecaca; text-align: center; width: 90%; }
         .msg small { font-size: 10px; font-weight: 800; display: block; margin-bottom: 4px; opacity: 0.7; }
         
         #envio { padding: 12px; background: white; display: flex; gap: 10px; border-top: 1px solid #f1f5f9; align-items: center; }
@@ -52,7 +52,7 @@
 
         #modalQR { position: absolute; inset: 0; background: rgba(15, 23, 42, 0.9); z-index: 500; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .qr-card { background: white; padding: 30px; border-radius: 30px; text-align: center; }
-        audio { height: 35px; width: 200px; margin-top: 5px; }
+        audio { height: 35px; width: 210px; margin-top: 5px; }
     </style>
 </head>
 <body onload="inicializarApp()">
@@ -137,7 +137,7 @@
     function toggleBurn() { isBurn = !isBurn; document.getElementById('burn-btn').classList.toggle('burn-on', isBurn); }
 
     function criptografar(t) { return CryptoJS.AES.encrypt(t, salaAtual).toString(); }
-    function descriptografar(t) { try { return CryptoJS.AES.decrypt(t, salaAtual).toString(CryptoJS.enc.Utf8); } catch(e) { return ""; } }
+    function descriptografar(t) { try { let bytes = CryptoJS.AES.decrypt(t, salaAtual); return bytes.toString(CryptoJS.enc.Utf8); } catch(e) { return ""; } }
 
     function entrarNoChat() {
         const n = document.getElementById('nick-entrar').value;
@@ -196,9 +196,10 @@
             let cont = `<small>${m.nick}</small>`;
             let dataDec = m.data ? descriptografar(m.data) : "";
             
-            if(m.expired) cont += `<span style="opacity:0.5; font-style:italic">Expirado</span>`;
-            else if(m.tipo === 'audio') cont += `<audio controls src="${dataDec}"></audio>`;
+            if(m.expired) cont += `<span style="opacity:0.5; font-style:italic">Conteúdo Expirado</span>`;
+            else if(m.tipo === 'audio') cont += `<audio controls controlsList="nodownload"><source src="${dataDec}" type="audio/webm"></audio>`;
             else if(m.tipo === 'image') { cont += `<img src="${dataDec}" style="max-width:100%;border-radius:10px">`; iniciarExp(key, isM); }
+            else if(m.tipo === 'file') { cont += `📁 <a href="${dataDec}" download="arquivo" style="color:inherit;font-weight:bold">Baixar Arquivo</a>`; }
             else cont += descriptografar(m.texto);
 
             if(m.burn && !m.expired) {
@@ -215,20 +216,20 @@
 
     function verificarSpam() {
         const agora = Date.now();
-        if(agora < bloqueadoAte) { alert("Você está temporariamente bloqueado por spam."); return false; }
+        if(agora < bloqueadoAte) { alert("Você está bloqueado temporariamente."); return false; }
         if(agora - ultimaMsgTime < 800) { totalMensagens++; } else { totalMensagens = 0; }
         ultimaMsgTime = agora;
         if(totalMensagens > 3) {
             infracoes++;
             if(infracoes === 1) { bloqueadoAte = agora + 15000; notificarSistema(`${nickAtual} bloqueado por 15s (Spam)`); }
             else if(infracoes === 2) { bloqueadoAte = agora + 600000; notificarSistema(`${nickAtual} bloqueado por 10min (Spam)`); }
-            else { notificarSistema(`${nickAtual} BANIDO POR 7 DIAS`); localStorage.setItem('ban_'+salaAtual, Date.now() + 604800000); setTimeout(sairDaSala, 2000); }
+            else { notificarSistema(`${nickAtual} EXPULSO E BANIDO POR 7 DIAS`); localStorage.setItem('ban_'+salaAtual, Date.now() + 604800000); setTimeout(sairDaSala, 2000); }
             return false;
         }
         return true;
     }
 
-    function notificarSistema(txt) { db.ref(`salas/${salaAtual}/mensagens`).push({ tipo: 'sistema', texto: txt, timestamp: Date.now() }); }
+    function notificarSistema(txt) { db.ref(`salas/${salaAtual}/mensagens`).push({ tipo: 'sistema', texto: txt }); }
     function iniciarExp(k, o) { setTimeout(() => { if(o) db.ref(`salas/${salaAtual}/mensagens/${k}`).update({expired:true, data:""}); }, 60000); }
 
     function enviarTexto() {
@@ -242,7 +243,7 @@
         audioChunks = []; segundosRec = 0;
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaRecorder = new MediaRecorder(stream);
-        mediaRecorder.ondataavailable = e => { if(e.data.size > 0) audioChunks.push(e.data); };
+        mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
         mediaRecorder.start();
         document.getElementById('btn-mic-plus').classList.add('rec-active');
         timerInterval = setInterval(() => {
@@ -257,6 +258,7 @@
         mediaRecorder.stop();
         clearInterval(timerInterval);
         document.getElementById('btn-mic-plus').classList.remove('rec-active');
+        let oldTimer = document.getElementById('timer-rec').innerText;
         document.getElementById('timer-rec').innerText = "00:00";
         
         mediaRecorder.onstop = () => {
@@ -264,7 +266,7 @@
             const reader = new FileReader();
             reader.readAsDataURL(blob);
             reader.onloadend = () => {
-                if(confirm("Enviar áudio?")) {
+                if(confirm("Deseja enviar o áudio de " + oldTimer + "?")) {
                     if(verificarSpam()) db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, tipo: 'audio', data: criptografar(reader.result), timestamp: Date.now() });
                 }
                 segundosRec = 0;
@@ -278,6 +280,16 @@
         const reader = new FileReader();
         reader.onload = e => {
             if(verificarSpam()) db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, tipo: 'image', data: criptografar(e.target.result), timestamp: Date.now() });
+            toggleAnexos();
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function processarDocumento(input) {
+        const file = input.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+            if(verificarSpam()) db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, tipo: 'file', data: criptografar(e.target.result), timestamp: Date.now() });
             toggleAnexos();
         };
         reader.readAsDataURL(file);
