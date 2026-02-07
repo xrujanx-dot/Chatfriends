@@ -7,6 +7,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
@@ -74,6 +75,10 @@
         
         .expira-aviso { font-size: 9px; opacity: 0.6; display: block; margin-top: 4px; }
         .btn-download { color: inherit; text-decoration: underline; font-size: 11px; margin-top: 8px; display: inline-block; cursor: pointer; font-weight: bold; }
+        
+        /* Estilo Anti-Spam */
+        #status-nick { font-size: 12px; font-weight: bold; margin-left: 5px; }
+        .spam-bloqueado { color: #ef4444 !important; }
     </style>
 </head>
 <body onload="inicializarApp()">
@@ -120,7 +125,11 @@
 
     <div id="chat">
         <div id="topo">
-            <div><b id="labelSala">Sala: ---</b><br><span id="contagem" style="font-size:10px; color:#10b981">● 0 online</span></div>
+            <div>
+                <b id="labelSala">Sala: ---</b><br>
+                <span id="contagem" style="font-size:10px; color:#10b981">● 0 online</span>
+                <span id="status-nick"></span>
+            </div>
             <button class="btn-action" style="background:#f1f5f9" onclick="event.stopPropagation(); toggleConfig()">⚙️</button>
             <div id="menu-config">
                 <button id="btnMudarNome" onclick="mudarNomeSala()">✏️ Mudar Nome (1x)</button>
@@ -137,8 +146,8 @@
             </div>
             <input type="file" id="img-input" accept="image/*" style="display:none" onchange="processarAnexo(this, 'foto')">
             <input type="file" id="file-input" style="display:none" onchange="processarAnexo(this, 'arquivo')">
-            <input id="texto" type="text" placeholder="Mensagem..." onkeydown="if(event.key==='Enter') enviarTexto()">
-            <button class="btn-action btn-send" onclick="enviarTexto()">➤</button>
+            <input id="texto" type="text" placeholder="Mensagem..." maxlength="500" onkeydown="if(event.key==='Enter') enviarTexto()">
+            <button id="btn-enviar-msg" class="btn-action btn-send" onclick="enviarTexto()">➤</button>
         </div>
     </div>
 
@@ -161,11 +170,18 @@
     });
 
     const db = firebase.database();
+    const auth = firebase.auth();
     let salaAtual, nickAtual, jaMudouNome = false;
-    let senhaSalaAtual = ""; // Armazena a senha para criptografia
+    let senhaSalaAtual = "";
     let entrarTime = Date.now();
 
-    // Funções de Criptografia AES
+    // VARIÁVEIS ANTI-SPAM
+    let historicoMensagens = [];
+    let ultimaMensagemTexto = "";
+    let repeticoesTexto = 0;
+    let nivelPunicao = 0; // 0: Livre, 1: 30s, 2: 10min, 3: Ban
+    let bloqueadoAte = 0;
+
     function criptografar(texto) {
         if (!senhaSalaAtual) return texto;
         return CryptoJS.AES.encrypt(texto, senhaSalaAtual).toString();
@@ -176,21 +192,88 @@
         try {
             const bytes = CryptoJS.AES.decrypt(textoCripto, senhaSalaAtual);
             const original = bytes.toString(CryptoJS.enc.Utf8);
-            return original ? original : "Mensagem criptografada";
-        } catch(e) { return "Erro ao descriptografar"; }
+            return original ? original : "Mensagem protegida";
+        } catch(e) { return "Erro de chave"; }
     }
 
-    function getPastelColor(str) {
-        let hash = 0;
-        for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
-        return `hsl(${Math.abs(hash % 360)}, 70%, 75%)`;
+    // SISTEMA ANTI-SPAM
+    function verificarSpam(texto) {
+        const agora = Date.now();
+        
+        // Verificar se ainda está no tempo de bloqueio
+        if (agora < bloqueadoAte) return true;
+
+        // Regra 1: Rapidez (4 mensagens em menos de 2 segundos)
+        historicoMensagens.push(agora);
+        historicoMensagens = historicoMensagens.filter(t => agora - t < 2000);
+        
+        // Regra 2: Repetição de texto
+        if (texto === ultimaMensagemTexto) {
+            repeticoesTexto++;
+        } else {
+            repeticoesTexto = 1;
+            ultimaMensagemTexto = texto;
+        }
+
+        if (historicoMensagens.length > 4 || repeticoesTexto > 4) {
+            aplicarPunicao();
+            return true;
+        }
+        return false;
     }
 
-    function inicializarApp() {
+    function aplicarPunicao() {
+        nivelPunicao++;
+        const agora = Date.now();
+        
+        if (nivelPunicao === 1) {
+            bloqueadoAte = agora + 30000;
+            iniciarContagemRegressiva(30);
+        } else if (nivelPunicao === 2) {
+            bloqueadoAte = agora + 600000;
+            iniciarContagemRegressiva(600);
+        } else {
+            // Banimento por 1 semana (Local)
+            localStorage.setItem('swiftly_ban_' + salaAtual, agora + (7 * 24 * 60 * 60 * 1000));
+            alert("Você foi expulso da sala por spam excessivo.");
+            sairDaSala();
+        }
+    }
+
+    function iniciarContagemRegressiva(segundos) {
+        const label = document.getElementById('status-nick');
+        const input = document.getElementById('texto');
+        const btn = document.getElementById('btn-enviar-msg');
+        
+        label.classList.add('spam-bloqueado');
+        input.disabled = true;
+        btn.style.opacity = "0.5";
+
+        let restante = segundos;
+        const intervalo = setInterval(() => {
+            restante--;
+            label.innerText = `⚠️ ${nickAtual} (${restante}s)`;
+            if (restante <= 0 || Date.now() >= bloqueadoAte) {
+                clearInterval(intervalo);
+                label.innerText = "";
+                label.classList.remove('spam-bloqueado');
+                input.disabled = false;
+                btn.style.opacity = "1";
+            }
+        }, 1000);
+    }
+
+    async function garantirAuth() {
+        if (!auth.currentUser) await auth.signInAnonymously();
+    }
+
+    async function inicializarApp() {
         document.addEventListener('click', () => {
             document.getElementById('menu-config').style.display = 'none';
             document.getElementById('menu-anexos').style.display = 'none';
         });
+
+        await garantirAuth();
 
         const savedNick = sessionStorage.getItem('swiftly_nick');
         const savedSala = sessionStorage.getItem('swiftly_sala');
@@ -203,11 +286,6 @@
         } else {
             verificarConvite();
         }
-    }
-
-    function showGroup(id) {
-        document.querySelectorAll('.input-group').forEach(g => g.style.display = 'none');
-        document.getElementById(id).style.display = 'flex';
     }
 
     function verificarConvite() {
@@ -224,14 +302,26 @@
         }
     }
 
-    function confirmarEntradaConvite() {
+    function checarBanimento(sala) {
+        const ban = localStorage.getItem('swiftly_ban_' + sala);
+        if (ban && Date.now() < parseInt(ban)) {
+            const dias = Math.ceil((parseInt(ban) - Date.now()) / (1000 * 60 * 60 * 24));
+            alert(`Você está banido desta sala. Tente novamente em alguns dias.`);
+            return true;
+        }
+        return false;
+    }
+
+    async function confirmarEntradaConvite() {
+        if (checarBanimento(salaAtual)) return;
+        await garantirAuth();
         const nick = document.getElementById('nick-convite').value.trim();
         const senhaInput = document.getElementById('senha-convite').value.trim();
         if (!nick) return alert("Digite um apelido");
         db.ref(`salas/${salaAtual}/config/senha`).once('value', snap => {
             const senhaReal = snap.val();
             if (senhaReal && senhaInput !== senhaReal) return alert("Senha incorreta!");
-            senhaSalaAtual = senhaInput || salaAtual; // Se não tem senha, usa o nome da sala como chave
+            senhaSalaAtual = senhaInput || salaAtual;
             sessionStorage.setItem('swiftly_pw', senhaSalaAtual);
             conectar(nick, salaAtual, true);
             document.getElementById('login-convite').style.display = 'none';
@@ -240,19 +330,22 @@
 
     function gerarId6() { return Math.random().toString(36).substring(2, 8).toUpperCase(); }
 
-    function entrarAutomatico() {
+    async function entrarAutomatico() {
         const n = document.getElementById('nick-rapido').value.trim();
-        if(n) {
-            let s = gerarId6();
-            senhaSalaAtual = s; // Em sala rápida, a chave é o próprio ID
-            sessionStorage.setItem('swiftly_pw', senhaSalaAtual);
-            conectar(n, s, true);
-        } else alert("Digite seu apelido!");
+        if(!n) return alert("Digite seu apelido!");
+        let s = gerarId6();
+        if (checarBanimento(s)) return;
+        await garantirAuth();
+        senhaSalaAtual = s;
+        sessionStorage.setItem('swiftly_pw', senhaSalaAtual);
+        conectar(n, s, true);
     }
 
-    function criarSalaPrivada() {
+    async function criarSalaPrivada() {
         const n = document.getElementById('nick-criar').value.trim();
         let s = document.getElementById('nova-sala').value.trim().toUpperCase() || gerarId6();
+        if (checarBanimento(s)) return;
+        await garantirAuth();
         const pw = document.getElementById('nova-senha').value.trim();
         if(n) { 
             senhaSalaAtual = pw || s;
@@ -263,13 +356,15 @@
         } else alert("Apelido!");
     }
 
-    function entrar() {
+    async function entrar() {
         const n = document.getElementById('nick-entrar').value.trim();
         const s = document.getElementById('sala-manual').value.trim().toUpperCase();
         if(!n || !s) return alert("Preencha os campos!");
+        if (checarBanimento(s)) return;
+        await garantirAuth();
 
         db.ref(`salas/${s}`).once('value', snap => {
-            if (!snap.exists()) return alert("Esta sala não existe ou foi encerrada.");
+            if (!snap.exists()) return alert("Sala não encontrada.");
             const pw = snap.child('config/senha').val();
             const boxSenha = document.getElementById('box-senha-manual');
             
@@ -302,8 +397,8 @@
     function iniciarChat() {
         db.ref(`salas`).off();
         const refMsgs = db.ref(`salas/${salaAtual}/mensagens`);
-        const refUsers = db.ref(`salas/${salaAtual}/usuarios/${nickAtual}`);
-        refUsers.set(true);
+        const refUsers = db.ref(`salas/${salaAtual}/usuarios/${auth.currentUser.uid}`);
+        refUsers.set({nick: nickAtual, online: true});
         refUsers.onDisconnect().remove();
         
         refMsgs.on("child_added", s => renderizarMensagem(s.val(), s.key));
@@ -325,7 +420,7 @@
                     sairDaSala(); 
                 }
             });
-        }, 5000);
+        }, 10000);
     }
 
     function renderizarMensagem(m, key) {
@@ -337,10 +432,10 @@
         let html = m.tipo !== "sistema" ? `<small style="color:${nickColor}">${m.nick}</small><div id="cont-${key}">` : "";
         
         if(m.expirado) html += "🖼️ <i>Expirado</i>";
-        else if(m.tipo === "foto") html += `<img src="${descriptografar(m.url)}" class="img-chat"><a href="${descriptografar(m.url)}" download="Swiftly_IMG.jpg" class="btn-download">Baixar Foto</a>`;
-        else if(m.tipo === "arquivo") html += `📄 <b>${m.nome}</b><br><span class="btn-download" onclick="baixarArquivoSeguro('${descriptografar(m.data)}', '${m.nome}')">Baixar Arquivo</span>`;
+        else if(m.tipo === "foto") html += `<img src="${descriptografar(m.url)}" class="img-chat"><a href="${descriptografar(m.url)}" download="Swiftly_IMG.jpg" class="btn-download">Baixar</a>`;
+        else if(m.tipo === "arquivo") html += `📄 <b>${m.nome}</b><br><span class="btn-download" onclick="baixarArquivoSeguro('${descriptografar(m.data)}', '${m.nome}')">Baixar</span>`;
         else if(m.tipo === "sistema") html = `<center><small style="color:#94a3b8">${m.texto}</small></center>`;
-        else html += descriptografar(m.texto); // Descriptografa aqui
+        else html += descriptografar(m.texto);
         
         div.innerHTML = html + (m.tipo !== "sistema" ? "</div>" : "");
         document.getElementById('mensagens').appendChild(div);
@@ -349,11 +444,16 @@
 
     function enviarTexto() {
         const t = document.getElementById('texto');
-        if(!t.value.trim()) return;
-        // Criptografa antes de enviar
+        const val = t.value.trim();
+        if(!val) return;
+
+        // VALIDAÇÃO ANTI-SPAM
+        if (verificarSpam(val)) return;
+
         db.ref(`salas/${salaAtual}/mensagens`).push({ 
             nick: nickAtual, 
-            texto: criptografar(t.value.trim()), 
+            texto: criptografar(val), 
+            uid: auth.currentUser.uid,
             timestamp: Date.now() 
         });
         t.value = "";
@@ -361,6 +461,10 @@
 
     function processarAnexo(input, tipo) {
         const file = input.files[0]; if(!file) return;
+        
+        // Anti-spam para anexos também
+        if (verificarSpam("anexo_file")) return;
+
         const reader = new FileReader(); const expira = Date.now() + 60000;
         reader.readAsDataURL(file);
         reader.onload = e => {
@@ -373,13 +477,13 @@
                     if(w > h) { if(w > max){ h *= max/w; w = max; } } else { if(h > max){ w *= max/h; h = max; } }
                     canvas.width = w; canvas.height = h; ctx.drawImage(img, 0, 0, w, h);
                     db.ref(`salas/${salaAtual}/mensagens`).push({ 
-                        nick: nickAtual, tipo: "foto", url: criptografar(canvas.toDataURL('image/jpeg', 0.6)), expiraEm: expira, timestamp: Date.now() 
+                        nick: nickAtual, tipo: "foto", url: criptografar(canvas.toDataURL('image/jpeg', 0.6)), expiraEm: expira, timestamp: Date.now(), uid: auth.currentUser.uid 
                     });
                 };
             } else {
                 if(file.size > 2100000) return alert("Max 2MB");
                 db.ref(`salas/${salaAtual}/mensagens`).push({ 
-                    nick: nickAtual, tipo: "arquivo", data: criptografar(e.target.result), nome: file.name, expiraEm: expira, timestamp: Date.now() 
+                    nick: nickAtual, tipo: "arquivo", data: criptografar(e.target.result), nome: file.name, expiraEm: expira, timestamp: Date.now(), uid: auth.currentUser.uid 
                 });
             }
         };
