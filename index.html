@@ -85,21 +85,21 @@
         <div class="card-auth" id="main-menu">
             <button class="btn-main" onclick="showGroup('group-rapido')">⚡ Chat Rápido</button>
             <div id="group-rapido" class="input-group">
-                <input id="nick-rapido" placeholder="Seu apelido" maxlength="12">
+                <input id="nick-rapido" placeholder="Seu apelido" maxlength="12" onkeydown="if(event.key==='Enter') entrarAutomatico()">
                 <button class="btn-sec" onclick="entrarAutomatico()">Entrar Agora</button>
             </div>
             <button class="btn-main" onclick="showGroup('group-criar')">🔒 Criar Chat</button>
             <div id="group-criar" class="input-group">
-                <input id="nick-criar" placeholder="Seu apelido" maxlength="12">
-                <input id="nova-sala" placeholder="Nome da sala (Opcional)" maxlength="6">
-                <input id="nova-senha" type="password" placeholder="Senha (Opcional)" maxlength="8">
+                <input id="nick-criar" placeholder="Seu apelido" maxlength="12" onkeydown="if(event.key==='Enter') criarSalaPrivada()">
+                <input id="nova-sala" placeholder="Nome da sala (Opcional)" maxlength="6" onkeydown="if(event.key==='Enter') criarSalaPrivada()">
+                <input id="nova-senha" type="password" placeholder="Senha (Opcional)" maxlength="8" onkeydown="if(event.key==='Enter') criarSalaPrivada()">
                 <button class="btn-sec" onclick="criarSalaPrivada()">Criar e Entrar</button>
             </div>
             <button class="btn-main" onclick="showGroup('group-entrar')">🔑 Entrar em Chat</button>
             <div id="group-entrar" class="input-group">
-                <input id="nick-entrar" placeholder="Seu apelido" maxlength="12">
-                <input id="sala-manual" placeholder="Código da sala" maxlength="6">
-                <div id="box-senha-manual" style="display:none"><input id="senha-manual" type="password" placeholder="Senha da sala"></div>
+                <input id="nick-entrar" placeholder="Seu apelido" maxlength="12" onkeydown="if(event.key==='Enter') entrar()">
+                <input id="sala-manual" placeholder="Código da sala" maxlength="6" onkeydown="if(event.key==='Enter') entrar()">
+                <div id="box-senha-manual" style="display:none"><input id="senha-manual" type="password" placeholder="Senha da sala" onkeydown="if(event.key==='Enter') entrar()"></div>
                 <button class="btn-sec" onclick="entrar()">Verificar e Entrar</button>
             </div>
         </div>
@@ -110,8 +110,8 @@
         <h1 id="label-sala-convite">Sala: ---</h1>
         <p>Você foi convidado para esta conversa.</p>
         <div class="card-auth">
-            <input id="nick-convite" placeholder="Seu apelido" maxlength="12">
-            <div id="box-senha-convite" style="display:none"><input id="senha-convite" type="password" placeholder="Senha da sala" maxlength="8"></div>
+            <input id="nick-convite" placeholder="Seu apelido" maxlength="12" onkeydown="if(event.key==='Enter') confirmarEntradaConvite()">
+            <div id="box-senha-convite" style="display:none"><input id="senha-convite" type="password" placeholder="Senha da sala" maxlength="8" onkeydown="if(event.key==='Enter') confirmarEntradaConvite()"></div>
             <button class="btn-main" onclick="confirmarEntradaConvite()">Entrar no Chat</button>
             <button class="btn-sec" style="opacity:0.6" onclick="sairDaSala()">Voltar ao Início</button>
         </div>
@@ -163,7 +163,6 @@
     let salaAtual, nickAtual, jaMudouNome = false;
     let entrarTime = Date.now();
 
-    // Gerador de cor pastel baseada no texto
     function getPastelColor(str) {
         let hash = 0;
         for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
@@ -231,12 +230,11 @@
         const pw = document.getElementById('nova-senha').value.trim();
         if(n) { 
             if(pw) db.ref(`salas/${s}/config`).set({senha:pw}); 
-            else db.ref(`salas/${s}/config`).set({criadaEm: Date.now()}); // Cria a sala mesmo sem senha
+            else db.ref(`salas/${s}/config`).set({criadaEm: Date.now()});
             conectar(n, s, true); 
         } else alert("Apelido!");
     }
 
-    // FUNÇÃO ATUALIZADA: Verifica se a sala existe antes de entrar
     function entrar() {
         const n = document.getElementById('nick-entrar').value.trim();
         const s = document.getElementById('sala-manual').value.trim().toUpperCase();
@@ -295,7 +293,6 @@
             document.getElementById('contagem').innerText = `● ${s.val() ? Object.keys(s.val()).length : 0} online`;
         });
 
-        // Limpeza automática: se ficar 5 minutos sem mensagens, apaga a sala completa
         setInterval(() => {
             const agora = Date.now();
             refMsgs.once('value', snap => {
