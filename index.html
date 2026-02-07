@@ -8,6 +8,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
@@ -161,7 +162,23 @@
 
     const db = firebase.database();
     let salaAtual, nickAtual, jaMudouNome = false;
+    let senhaSalaAtual = ""; // Armazena a senha para criptografia
     let entrarTime = Date.now();
+
+    // Funções de Criptografia AES
+    function criptografar(texto) {
+        if (!senhaSalaAtual) return texto;
+        return CryptoJS.AES.encrypt(texto, senhaSalaAtual).toString();
+    }
+
+    function descriptografar(textoCripto) {
+        if (!senhaSalaAtual) return textoCripto;
+        try {
+            const bytes = CryptoJS.AES.decrypt(textoCripto, senhaSalaAtual);
+            const original = bytes.toString(CryptoJS.enc.Utf8);
+            return original ? original : "Mensagem criptografada";
+        } catch(e) { return "Erro ao descriptografar"; }
+    }
 
     function getPastelColor(str) {
         let hash = 0;
@@ -177,9 +194,11 @@
 
         const savedNick = sessionStorage.getItem('swiftly_nick');
         const savedSala = sessionStorage.getItem('swiftly_sala');
+        const savedPw = sessionStorage.getItem('swiftly_pw') || "";
         const urlParams = new URLSearchParams(window.location.search);
         
         if (savedNick && savedSala && !urlParams.get('sala')) {
+            senhaSalaAtual = savedPw;
             conectar(savedNick, savedSala, false);
         } else {
             verificarConvite();
@@ -212,6 +231,8 @@
         db.ref(`salas/${salaAtual}/config/senha`).once('value', snap => {
             const senhaReal = snap.val();
             if (senhaReal && senhaInput !== senhaReal) return alert("Senha incorreta!");
+            senhaSalaAtual = senhaInput || salaAtual; // Se não tem senha, usa o nome da sala como chave
+            sessionStorage.setItem('swiftly_pw', senhaSalaAtual);
             conectar(nick, salaAtual, true);
             document.getElementById('login-convite').style.display = 'none';
         });
@@ -221,7 +242,12 @@
 
     function entrarAutomatico() {
         const n = document.getElementById('nick-rapido').value.trim();
-        if(n) conectar(n, gerarId6(), true); else alert("Digite seu apelido!");
+        if(n) {
+            let s = gerarId6();
+            senhaSalaAtual = s; // Em sala rápida, a chave é o próprio ID
+            sessionStorage.setItem('swiftly_pw', senhaSalaAtual);
+            conectar(n, s, true);
+        } else alert("Digite seu apelido!");
     }
 
     function criarSalaPrivada() {
@@ -229,6 +255,8 @@
         let s = document.getElementById('nova-sala').value.trim().toUpperCase() || gerarId6();
         const pw = document.getElementById('nova-senha').value.trim();
         if(n) { 
+            senhaSalaAtual = pw || s;
+            sessionStorage.setItem('swiftly_pw', senhaSalaAtual);
             if(pw) db.ref(`salas/${s}/config`).set({senha:pw}); 
             else db.ref(`salas/${s}/config`).set({criadaEm: Date.now()});
             conectar(n, s, true); 
@@ -238,14 +266,10 @@
     function entrar() {
         const n = document.getElementById('nick-entrar').value.trim();
         const s = document.getElementById('sala-manual').value.trim().toUpperCase();
-        
         if(!n || !s) return alert("Preencha os campos!");
 
         db.ref(`salas/${s}`).once('value', snap => {
-            if (!snap.exists()) {
-                return alert("Esta sala não existe ou foi encerrada por inatividade.");
-            }
-
+            if (!snap.exists()) return alert("Esta sala não existe ou foi encerrada.");
             const pw = snap.child('config/senha').val();
             const boxSenha = document.getElementById('box-senha-manual');
             
@@ -253,9 +277,10 @@
                 boxSenha.style.display = 'block';
                 alert("Esta sala exige senha!");
             } else {
-                if(pw && document.getElementById('senha-manual').value !== pw) {
-                    return alert("Senha incorreta!");
-                }
+                const senhaInput = document.getElementById('senha-manual').value;
+                if(pw && senhaInput !== pw) return alert("Senha incorreta!");
+                senhaSalaAtual = senhaInput || s;
+                sessionStorage.setItem('swiftly_pw', senhaSalaAtual);
                 conectar(n, s, true);
             }
         });
@@ -268,11 +293,9 @@
         document.getElementById('login').style.display = "none";
         document.getElementById('chat').style.display = "flex";
         document.getElementById('labelSala').innerText = "Sala: " + s;
-        
         if(avisar) {
-            db.ref(`salas/${s}/mensagens`).push({ tipo: "sistema", texto: `${n} entrou no chat`, timestamp: Date.now() });
+            db.ref(`salas/${s}/mensagens`).push({ tipo: "sistema", texto: `${n} entrou`, timestamp: Date.now() });
         }
-        
         iniciarChat();
     }
 
@@ -284,10 +307,6 @@
         refUsers.onDisconnect().remove();
         
         refMsgs.on("child_added", s => renderizarMensagem(s.val(), s.key));
-        refMsgs.on("child_changed", s => {
-            const el = document.getElementById(`cont-${s.key}`);
-            if(el && s.val().expirado) el.innerHTML = "🖼️ <i>Expirado</i>";
-        });
         
         db.ref(`salas/${salaAtual}/usuarios`).on("value", s => {
             document.getElementById('contagem').innerText = `● ${s.val() ? Object.keys(s.val()).length : 0} online`;
@@ -300,9 +319,6 @@
                 snap.forEach(child => {
                     const m = child.val();
                     if(m.timestamp > ultimaAtividade) ultimaAtividade = m.timestamp;
-                    if(m.expiraEm && m.expiraEm < agora && !m.expirado) {
-                        refMsgs.child(child.key).update({expirado: true, url: null, data: null});
-                    }
                 });
                 if(agora - ultimaAtividade > 300000) { 
                     db.ref(`salas/${salaAtual}`).remove(); 
@@ -310,13 +326,6 @@
                 }
             });
         }, 5000);
-    }
-
-    function baixarArquivoSeguro(base64, nome) {
-        const link = document.createElement("a");
-        link.href = base64; link.download = nome;
-        document.body.appendChild(link); link.click();
-        document.body.removeChild(link);
     }
 
     function renderizarMensagem(m, key) {
@@ -328,10 +337,10 @@
         let html = m.tipo !== "sistema" ? `<small style="color:${nickColor}">${m.nick}</small><div id="cont-${key}">` : "";
         
         if(m.expirado) html += "🖼️ <i>Expirado</i>";
-        else if(m.tipo === "foto") html += `<img src="${m.url}" class="img-chat"><a href="${m.url}" download="Swiftly_IMG.jpg" class="btn-download">Baixar Foto</a><span class="expira-aviso">expira em breve</span>`;
-        else if(m.tipo === "arquivo") html += `📄 <b>${m.nome}</b><br><span class="btn-download" onclick="baixarArquivoSeguro('${m.data}', '${m.nome}')">Baixar Arquivo</span><span class="expira-aviso">expira em breve</span>`;
-        else if(m.tipo === "sistema") html = `<center><small style="color:#94a3b8; font-weight:400">${m.texto}</small></center>`;
-        else html += m.texto;
+        else if(m.tipo === "foto") html += `<img src="${descriptografar(m.url)}" class="img-chat"><a href="${descriptografar(m.url)}" download="Swiftly_IMG.jpg" class="btn-download">Baixar Foto</a>`;
+        else if(m.tipo === "arquivo") html += `📄 <b>${m.nome}</b><br><span class="btn-download" onclick="baixarArquivoSeguro('${descriptografar(m.data)}', '${m.nome}')">Baixar Arquivo</span>`;
+        else if(m.tipo === "sistema") html = `<center><small style="color:#94a3b8">${m.texto}</small></center>`;
+        else html += descriptografar(m.texto); // Descriptografa aqui
         
         div.innerHTML = html + (m.tipo !== "sistema" ? "</div>" : "");
         document.getElementById('mensagens').appendChild(div);
@@ -341,30 +350,39 @@
     function enviarTexto() {
         const t = document.getElementById('texto');
         if(!t.value.trim()) return;
-        db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, texto: t.value, timestamp: Date.now() });
+        // Criptografa antes de enviar
+        db.ref(`salas/${salaAtual}/mensagens`).push({ 
+            nick: nickAtual, 
+            texto: criptografar(t.value.trim()), 
+            timestamp: Date.now() 
+        });
         t.value = "";
     }
 
     function processarAnexo(input, tipo) {
         const file = input.files[0]; if(!file) return;
         const reader = new FileReader(); const expira = Date.now() + 60000;
-        if(tipo === 'foto') {
-            const img = new Image(); reader.readAsDataURL(file);
-            reader.onload = e => {
-                img.src = e.target.result;
+        reader.readAsDataURL(file);
+        reader.onload = e => {
+            if(tipo === 'foto') {
+                const img = new Image(); img.src = e.target.result;
                 img.onload = () => {
-                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
                     const max = 800; let w = img.width, h = img.height;
                     if(w > h) { if(w > max){ h *= max/w; w = max; } } else { if(h > max){ w *= max/h; h = max; } }
                     canvas.width = w; canvas.height = h; ctx.drawImage(img, 0, 0, w, h);
-                    db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, tipo: "foto", url: canvas.toDataURL('image/jpeg', 0.6), expiraEm: expira, timestamp: Date.now() });
+                    db.ref(`salas/${salaAtual}/mensagens`).push({ 
+                        nick: nickAtual, tipo: "foto", url: criptografar(canvas.toDataURL('image/jpeg', 0.6)), expiraEm: expira, timestamp: Date.now() 
+                    });
                 };
-            };
-        } else {
-            if(file.size > 2100000) return alert("Max 2MB");
-            reader.readAsDataURL(file);
-            reader.onload = e => db.ref(`salas/${salaAtual}/mensagens`).push({ nick: nickAtual, tipo: "arquivo", data: e.target.result, nome: file.name, expiraEm: expira, timestamp: Date.now() });
-        }
+            } else {
+                if(file.size > 2100000) return alert("Max 2MB");
+                db.ref(`salas/${salaAtual}/mensagens`).push({ 
+                    nick: nickAtual, tipo: "arquivo", data: criptografar(e.target.result), nome: file.name, expiraEm: expira, timestamp: Date.now() 
+                });
+            }
+        };
         input.value = "";
     }
 
@@ -373,36 +391,25 @@
         let n = prompt("Novo nome (6 carac):");
         if(n) { 
             n = n.toUpperCase().substring(0,6).replace(/[^A-Z0-9]/g, "");
-            db.ref(`salas/${salaAtual}/mensagens`).push({tipo: "sistema", texto: `${nickAtual} mudou o nome da sala para ${n}`, timestamp: Date.now()}); 
+            db.ref(`salas/${salaAtual}/mensagens`).push({tipo: "sistema", texto: `${nickAtual} mudou o nome da sala`, timestamp: Date.now()}); 
             setTimeout(() => { salaAtual = n; sessionStorage.setItem('swiftly_sala', n); document.getElementById('labelSala').innerText = "Sala: " + n; jaMudouNome = true; iniciarChat(); }, 500);
         }
     }
 
-    function toggleConfig() { 
-        const m = document.getElementById('menu-config'); 
-        m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; 
-    }
-    function toggleAnexos() { 
-        const m = document.getElementById('menu-anexos'); 
-        m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; 
-    }
-    function sairDaSala() { 
-        sessionStorage.clear();
-        window.location.href = window.location.pathname; 
-    }
-    
+    function toggleConfig() { document.getElementById('menu-config').style.display = document.getElementById('menu-config').style.display === 'flex' ? 'none' : 'flex'; }
+    function toggleAnexos() { document.getElementById('menu-anexos').style.display = document.getElementById('menu-anexos').style.display === 'flex' ? 'none' : 'flex'; }
+    function sairDaSala() { sessionStorage.clear(); window.location.href = window.location.pathname; }
+    function baixarArquivoSeguro(base64, nome) { const link = document.createElement("a"); link.href = base64; link.download = nome; link.click(); }
+
     function exibirQR() {
         const container = document.getElementById("qrcode-wrapper");
         container.innerHTML = '<div id="temp-qr" style="display:none"></div><canvas id="qrcode-canvas"></canvas>';
-        new QRCode(document.getElementById("temp-qr"), { text: window.location.href.split('?')[0] + "?sala=" + salaAtual, width: 200, height: 200, correctLevel: QRCode.CorrectLevel.H });
+        new QRCode(document.getElementById("temp-qr"), { text: window.location.href.split('?')[0] + "?sala=" + salaAtual, width: 200, height: 200 });
         setTimeout(() => {
             const qrImg = document.querySelector("#temp-qr img");
             const finalCanvas = document.getElementById("qrcode-canvas");
-            const ctx = finalCanvas.getContext("2d");
             finalCanvas.width = 200; finalCanvas.height = 200;
-            ctx.drawImage(qrImg, 0, 0);
-            ctx.beginPath(); ctx.arc(100, 100, 25, 0, Math.PI * 2); ctx.fillStyle = "white"; ctx.fill();
-            ctx.font = "24px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("⚡", 100, 103);
+            finalCanvas.getContext("2d").drawImage(qrImg, 0, 0);
             document.getElementById('modalQR').style.display = "flex";
         }, 150);
     }
