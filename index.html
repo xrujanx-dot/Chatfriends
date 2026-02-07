@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover">
-    <title>Swiftly Pro + Voice</title>
+    <title>Swiftly Pro</title>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
@@ -18,35 +18,58 @@
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-dark); overflow: hidden; position: fixed; }
         #app { width: 100%; max-width: 450px; height: 100%; margin: 0 auto; background: #fff; display: flex; flex-direction: column; position: relative; overflow: hidden; }
         
-        #login { position: absolute; inset: 0; z-index: 100; background: var(--bg-dark); display: flex; flex-direction: column; align-items: center; padding: 30px; text-align: center; }
-        .raio-container { background: var(--gradient); width: 60px; height: 60px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 30px; color: white; margin-bottom: 10px; transform: rotate(-10deg); }
-        h1 { color: white; margin: 0; font-size: 24px; font-weight: 800; }
-        .card-auth { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 15px; width: 100%; display: flex; flex-direction: column; gap: 8px; margin-top: 20px; }
-        input { width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: white; outline: none; font-size: 15px; }
-        .btn-main { background: var(--gradient); color: white; border: none; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer; }
-        .input-group { display: none; flex-direction: column; gap: 8px; animation: fadeIn 0.3s ease; }
-
+        /* Telas de Login */
+        #login, #login-convite { position: absolute; inset: 0; z-index: 100; background: var(--bg-dark); display: flex; flex-direction: column; align-items: center; padding: 30px; text-align: center; overflow-y: auto; }
+        #login-convite { display: none; z-index: 101; }
+        .raio-container { background: var(--gradient); width: 70px; height: 70px; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 35px; color: white; margin-bottom: 15px; transform: rotate(-10deg); flex-shrink: 0; }
+        h1 { color: white; margin: 0; font-weight: 800; font-size: 28px; }
+        p { color: #94a3b8; font-size: 14px; margin-bottom: 25px; }
+        .card-auth { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 20px; width: 100%; display: flex; flex-direction: column; gap: 12px; }
+        input { width: 100%; padding: 14px 18px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; font-size: 15px; outline: none; }
+        .btn-main { background: var(--gradient); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 15px; }
+        .btn-sec { background: rgba(255,255,255,0.1); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 14px; }
+        .input-group { display: none; flex-direction: column; gap: 10px; margin-top: 5px; animation: fadeIn 0.3s ease; }
+        
+        /* Chat */
         #chat { display: none; flex: 1; flex-direction: column; height: 100%; background: #f8fafc; }
         #topo { padding: 10px 15px; background: white; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
-        #mensagens { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+        #mensagens { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
         
-        .msg { padding: 8px 12px; border-radius: 14px; max-width: 80%; font-size: 14px; position: relative; word-wrap: break-word; }
-        .msg-out { align-self: flex-start; background: white; border-bottom-left-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); color: #1e293b; }
+        /* Mensagens e Reações */
+        .msg { padding: 8px 12px; border-radius: 14px; max-width: 85%; font-size: 14px; position: relative; line-height: 1.4; word-wrap: break-word; cursor: pointer; transition: transform 0.1s; }
+        .msg:active { transform: scale(0.98); }
+        .msg-out { align-self: flex-start; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-bottom-left-radius: 4px; }
         .msg-in { align-self: flex-end; background: var(--gradient); color: white; border-bottom-right-radius: 4px; }
-        .msg small { font-size: 10px; font-weight: 800; display: block; margin-bottom: 3px; }
+        .msg small { font-size: 10px; font-weight: 800; display: block; margin-bottom: 2px; }
+        .reacao-tag { position: absolute; bottom: -8px; right: 5px; background: white; border-radius: 10px; padding: 1px 4px; font-size: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); color: black; }
+        
+        /* Áudio */
+        audio { height: 35px; width: 180px; margin-top: 5px; border-radius: 10px; filter: grayscale(1); }
 
-        audio { height: 35px; width: 200px; margin-top: 5px; border-radius: 10px; }
-        
-        #envio { padding: 10px; background: white; display: flex; gap: 6px; border-top: 1px solid #f1f5f9; align-items: center; }
-        #texto { background: #f1f5f9; border: none; flex: 1; height: 40px; padding: 0 15px; border-radius: 20px; outline: none; color: #000; }
-        .btn-action { width: 40px; height: 40px; border-radius: 20px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: 0.2s; }
-        
+        /* Menu de Reações */
+        #menu-reacoes { position: absolute; background: white; padding: 8px; border-radius: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); display: none; gap: 10px; z-index: 500; }
+        .react-btn { font-size: 20px; cursor: pointer; transition: transform 0.2s; }
+        .react-btn:hover { transform: scale(1.3); }
+
+        /* Barra de Envio */
+        #envio { padding: 10px; background: white; display: flex; gap: 8px; border-top: 1px solid #f1f5f9; align-items: center; }
+        #texto { background: #f1f5f9; border: none; flex: 1; height: 42px; padding: 0 15px; border-radius: 12px; color: #000; font-size: 15px; outline: none; }
+        .btn-action { width: 42px; height: 42px; border-radius: 12px; border: none; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .burn-active { background: #fee2e2 !important; color: #ef4444 !important; border: 1px solid #fecaca; }
         .recording { background: #ef4444 !important; color: white !important; animation: pulse 1s infinite; }
+
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; } }
-        
         .burn-tag { font-size: 9px; opacity: 0.7; font-style: italic; display: block; margin-top: 4px; }
-        #status-nick { font-size: 10px; font-weight: bold; color: #ef4444; margin-left: 5px; }
+
+        /* QR e Modais */
+        #modalQR { position: absolute; inset: 0; background: rgba(0,0,0,0.8); z-index: 200; display: none; align-items: center; justify-content: center; }
+        #menu-config, #menu-anexos { position: absolute; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 12px; display: none; flex-direction: column; z-index: 110; border: 1px solid #eee; }
+        #menu-config { top: 55px; right: 15px; min-width: 170px; }
+        #menu-anexos { bottom: 65px; left: 10px; }
+        #menu-config button, #menu-anexos button { border: none; background: none; padding: 14px; text-align: left; font-size: 15px; font-weight: 600; cursor: pointer; }
+        
+        .spam-bloqueado { color: #ef4444 !important; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body onload="inicializarApp()">
@@ -54,19 +77,27 @@
 <div id="app">
     <div id="login">
         <div class="raio-container">⚡</div>
-        <h1>Swiftly Voice</h1>
+        <h1>Swiftly Pro</h1>
+        <p>Privacidade total e velocidade real.</p>
         <div class="card-auth">
-            <button class="btn-main" onclick="showGroup('g1')">Chat Rápido</button>
-            <div id="g1" class="input-group">
-                <input id="n1" placeholder="Seu apelido" onkeydown="if(event.key==='Enter') entrarRapido()">
-                <button class="btn-main" onclick="entrarRapido()">Entrar Agora</button>
+            <button class="btn-main" onclick="showGroup('group-rapido')">⚡ Chat Rápido</button>
+            <div id="group-rapido" class="input-group">
+                <input id="nick-rapido" placeholder="Seu apelido" maxlength="12" onkeydown="if(event.key==='Enter') entrarAutomatico()">
+                <button class="btn-sec" onclick="entrarAutomatico()">Entrar Agora</button>
             </div>
-
-            <button class="btn-main" onclick="showGroup('g2')">Entrar com Código</button>
-            <div id="g2" class="input-group">
-                <input id="n2" placeholder="Seu apelido" onkeydown="if(event.key==='Enter') entrarManual()">
-                <input id="s2" placeholder="Código da sala" onkeydown="if(event.key==='Enter') entrarManual()">
-                <button class="btn-main" onclick="entrarManual()">Conectar</button>
+            <button class="btn-main" onclick="showGroup('group-criar')">🔒 Criar Chat</button>
+            <div id="group-criar" class="input-group">
+                <input id="nick-criar" placeholder="Seu apelido" maxlength="12" onkeydown="if(event.key==='Enter') criarSalaPrivada()">
+                <input id="nova-sala" placeholder="Nome da sala (Opcional)" maxlength="6">
+                <input id="nova-senha" type="password" placeholder="Senha (Opcional)" maxlength="8">
+                <button class="btn-sec" onclick="criarSalaPrivada()">Criar e Entrar</button>
+            </div>
+            <button class="btn-main" onclick="showGroup('group-entrar')">🔑 Entrar em Chat</button>
+            <div id="group-entrar" class="input-group">
+                <input id="nick-entrar" placeholder="Seu apelido" maxlength="12">
+                <input id="sala-manual" placeholder="Código da sala" maxlength="6">
+                <div id="box-senha-manual" style="display:none"><input id="senha-manual" type="password" placeholder="Senha da sala" onkeydown="if(event.key==='Enter') entrar()"></div>
+                <button class="btn-sec" onclick="entrar()">Verificar e Entrar</button>
             </div>
         </div>
     </div>
@@ -74,185 +105,208 @@
     <div id="chat">
         <div id="topo">
             <div>
-                <b id="labelSala">Sala</b><br>
+                <b id="labelSala">Sala: ---</b><br>
+                <span id="typing-label" style="font-size:10px; color:#6366f1; font-weight: bold; display:none">Alguém está digitando...</span>
                 <span id="contagem" style="font-size:10px; color:#10b981">● 0 online</span>
                 <span id="status-nick"></span>
             </div>
-            <button class="btn-action" onclick="sairDaSala()">🚪</button>
+            <button class="btn-action" style="background:#f1f5f9" onclick="event.stopPropagation(); toggleConfig()">⚙️</button>
+            <div id="menu-config">
+                <button onclick="mudarNomeSala()">✏️ Mudar Nome (1x)</button>
+                <button onclick="exibirQR()">📱 QR Code</button>
+                <button onclick="sairDaSala()" style="color:red">🚪 Sair</button>
+            </div>
         </div>
+        
         <div id="mensagens"></div>
+
+        <div id="menu-reacoes">
+            <span class="react-btn" onclick="reagir('👍')">👍</span>
+            <span class="react-btn" onclick="reagir('❤️')">❤️</span>
+            <span class="react-btn" onclick="reagir('😂')">😂</span>
+            <span class="react-btn" onclick="reagir('😮')">😮</span>
+        </div>
+
         <div id="envio">
-            <button class="btn-action" id="btn-mic" style="background:#f1f5f9" 
+            <button class="btn-action" style="background:#f1f5f9" onclick="event.stopPropagation(); toggleAnexos()">+</button>
+            <div id="menu-anexos">
+                <button onclick="document.getElementById('img-input').click()">🖼️ Foto</button>
+                <button onclick="document.getElementById('file-input').click()">📄 Arquivo</button>
+            </div>
+            
+            <button id="btn-mic" class="btn-action" style="background:#f1f5f9" 
                 onmousedown="startRecording()" onmouseup="stopRecording()" 
                 ontouchstart="startRecording()" ontouchend="stopRecording()">🎤</button>
+
+            <button id="burn-btn" class="btn-action" style="background:#f1f5f9" onclick="toggleBurn()">🔥</button>
             
-            <input id="texto" placeholder="Mensagem..." onkeydown="if(event.key==='Enter') enviarTexto()">
+            <input type="file" id="img-input" accept="image/*" style="display:none" onchange="processarAnexo(this, 'foto')">
+            <input type="file" id="file-input" style="display:none" onchange="processarAnexo(this, 'arquivo')">
             
-            <button class="btn-action" style="background:var(--gradient); color:white" onclick="enviarTexto()">➤</button>
+            <input id="texto" type="text" placeholder="Mensagem..." maxlength="500" onkeydown="if(event.key==='Enter') enviarTexto()" oninput="handleTyping()">
+            
+            <button id="btn-enviar-msg" class="btn-action btn-send" style="background:var(--gradient); color:white" onclick="enviarTexto()">➤</button>
         </div>
     </div>
+
+    <div id="modalQR" onclick="this.style.display='none'"><div class="qr-card" onclick="event.stopPropagation()"><div id="qrcode-wrapper"><canvas id="qrcode-canvas"></canvas></div><button class="btn-sec" style="color:#000; width:100%" onclick="document.getElementById('modalQR').style.display='none'">Fechar</button></div></div>
 </div>
 
 <script>
-    const firebaseConfig = { apiKey: "AIzaSyCkkkHhydC92yB5N364Ula4-aM2LUlSmG4", authDomain: "ponte-virtual-rujan.firebaseapp.com", databaseURL: "https://ponte-virtual-rujan-default-rtdb.firebaseio.com", projectId: "ponte-virtual-rujan" };
-    firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp({ apiKey: "AIzaSyCkkkHhydC92yB5N364Ula4-aM2LUlSmG4", authDomain: "ponte-virtual-rujan.firebaseapp.com", databaseURL: "https://ponte-virtual-rujan-default-rtdb.firebaseio.com", projectId: "ponte-virtual-rujan" });
     const db = firebase.database(); const auth = firebase.auth();
-    
-    let salaAtual, nickAtual, senhaSala, mediaRecorder, audioChunks = [], timerGravacao;
-    let historicoMsgs = [], repeticoes = 0, ultimaMsg = "", bloqueadoAte = 0;
+    let salaAtual, nickAtual, senhaSalaAtual = "", isBurn = false, msgAlvo = null, typingTimeout;
+    let mediaRecorder, audioChunks = [], timerGravacao;
+    let nivelPunicao = 0, bloqueadoAte = 0, errosSenha = 0;
+    const notifyPop = new Audio('https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3');
 
-    function showGroup(id) { document.querySelectorAll('.input-group').forEach(g => g.style.display='none'); document.getElementById(id).style.display='flex'; }
+    function showGroup(id) { document.querySelectorAll('.input-group').forEach(g => g.style.display = 'none'); document.getElementById(id).style.display = 'flex'; }
+    function toggleConfig() { const m = document.getElementById('menu-config'); m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; }
+    function toggleAnexos() { const m = document.getElementById('menu-anexos'); m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; }
+    function toggleBurn() { isBurn = !isBurn; document.getElementById('burn-btn').className = isBurn ? 'btn-action burn-active' : 'btn-action'; }
 
-    // --- ENTRADA ---
-    async function entrarRapido() {
-        nickAtual = document.getElementById('n1').value.trim(); if(!nickAtual) return;
-        salaAtual = Math.random().toString(36).substring(7).toUpperCase();
-        senhaSala = salaAtual; iniciar();
+    async function garantirAuth() { if (!auth.currentUser) await auth.signInAnonymously(); }
+    function criptografar(t) { return senhaSalaAtual ? CryptoJS.AES.encrypt(t, senhaSalaAtual).toString() : t; }
+    function descriptografar(t) { try { return senhaSalaAtual ? CryptoJS.AES.decrypt(t, senhaSalaAtual).toString(CryptoJS.enc.Utf8) || "..." : t; } catch(e) { return "..."; } }
+
+    function handleTyping() {
+        db.ref(`salas/${salaAtual}/typing/${auth.currentUser.uid}`).set(true);
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => db.ref(`salas/${salaAtual}/typing/${auth.currentUser.uid}`).remove(), 2000);
     }
 
-    async function entrarManual() {
-        nickAtual = document.getElementById('n2').value.trim(); 
-        salaAtual = document.getElementById('s2').value.trim().toUpperCase();
-        if(!nickAtual || !salaAtual) return;
-        senhaSala = salaAtual; iniciar();
+    async function entrar() {
+        const n = document.getElementById('nick-entrar').value.trim();
+        const s = document.getElementById('sala-manual').value.trim().toUpperCase();
+        if(!n || !s) return;
+        await garantirAuth();
+
+        db.ref(`salas/${s}`).once('value', snap => {
+            const pwReal = snap.child('config/senha').val();
+            const box = document.getElementById('box-senha-manual');
+            if(pwReal && box.style.display === 'none') {
+                box.style.display = 'block'; alert("Senha necessária!");
+            } else {
+                const pIn = document.getElementById('senha-manual').value;
+                if(pwReal && pIn !== pwReal) {
+                    errosSenha++;
+                    if(errosSenha >= 3) {
+                        alert("Acesso concedido (Sala Fantasma)");
+                        senhaSalaAtual = "FANTASMA_" + Math.random();
+                        conectar(n, s, false);
+                    } else alert("Senha incorreta!");
+                    return;
+                }
+                senhaSalaAtual = pIn || s;
+                conectar(n, s, true);
+            }
+        });
     }
 
-    async function iniciar() {
-        await auth.signInAnonymously();
-        document.getElementById('login').style.display='none';
-        document.getElementById('chat').style.display='flex';
-        document.getElementById('labelSala').innerText = "Sala: " + salaAtual;
-        
+    function conectar(n, s, avisar) {
+        nickAtual = n; salaAtual = s;
+        sessionStorage.setItem('swiftly_nick', n); sessionStorage.setItem('swiftly_sala', s);
+        document.getElementById('login').style.display = "none"; document.getElementById('chat').style.display = "flex";
+        document.getElementById('labelSala').innerText = "Sala: " + s;
+        if(avisar) db.ref(`salas/${s}/mensagens`).push({ tipo: "sistema", texto: `⚡ ${n} entrou`, timestamp: Date.now() });
+        iniciarChat();
+    }
+
+    function iniciarChat() {
         const refM = db.ref(`salas/${salaAtual}/mensagens`);
-        refM.on('child_added', snap => renderizar(snap.val(), snap.key));
-        refM.on('child_removed', snap => {
-            const el = document.getElementById(snap.key);
-            if(el) el.remove();
+        db.ref(`salas/${salaAtual}/usuarios/${auth.currentUser.uid}`).set({nick: nickAtual, online: true});
+        db.ref(`salas/${salaAtual}/usuarios/${auth.currentUser.uid}`).onDisconnect().remove();
+
+        refM.on("child_added", s => {
+            renderizar(s.val(), s.key);
+            if(s.val().nick !== nickAtual) notifyPop.play().catch(()=>{});
+        });
+        
+        refM.on("child_removed", s => document.getElementById(`msg-${s.key}`)?.remove());
+        refM.on("child_changed", s => {
+            const el = document.getElementById(`react-${s.key}`);
+            if(el) el.innerText = s.val().reacao || "";
         });
 
-        db.ref(`salas/${salaAtual}/usuarios/${auth.currentUser.uid}`).set({nick: nickAtual});
-        db.ref(`salas/${salaAtual}/usuarios/${auth.currentUser.uid}`).onDisconnect().remove();
-        db.ref(`salas/${salaAtual}/usuarios`).on('value', s => {
+        db.ref(`salas/${salaAtual}/typing`).on("value", snap => {
+            const users = snap.val() || {};
+            const outros = Object.keys(users).filter(id => id !== auth.currentUser.uid);
+            document.getElementById('typing-label').style.display = outros.length > 0 ? 'block' : 'none';
+        });
+
+        db.ref(`salas/${salaAtual}/usuarios`).on("value", s => {
             document.getElementById('contagem').innerText = `● ${s.val() ? Object.keys(s.val()).length : 0} online`;
         });
     }
 
-    // --- SEGURANÇA E CORES ---
-    function cripto(t) { return CryptoJS.AES.encrypt(t, senhaSala).toString(); }
-    function decripto(t) { try { return CryptoJS.AES.decrypt(t, senhaSala).toString(CryptoJS.enc.Utf8); } catch(e) { return "..."; } }
-
-    function getCorNick(nick) {
-        let hash = 0;
-        for (let i = 0; i < nick.length; i++) hash = nick.charCodeAt(i) + ((hash << 5) - hash);
-        return `hsl(${Math.abs(hash % 360)}, 70%, 65%)`;
-    }
-
-    function verificarSpam(texto) {
-        const agora = Date.now();
-        if (agora < bloqueadoAte) return true;
-        
-        historicoMsgs.push(agora);
-        historicoMsgs = historicoMsgs.filter(t => agora - t < 2000);
-        
-        if (texto === ultimaMsg) repeticoes++; else { repeticoes = 1; ultimaMsg = texto; }
-
-        if (historicoMsgs.length > 5 || repeticoes > 4) {
-            bloqueadoAte = agora + 30000;
-            db.ref(`salas/${salaAtual}/mensagens`).push({ tipo: "sistema", texto: `🚫 ${nickAtual} silenciado por 30s (Spam)` });
-            iniciarTimerBloqueio(30);
-            return true;
-        }
-        return false;
-    }
-
-    function iniciarTimerBloqueio(segundos) {
-        const label = document.getElementById('status-nick');
-        let restante = segundos;
-        const interval = setInterval(() => {
-            restante--;
-            label.innerText = `[Bloqueado ${restante}s]`;
-            if (restante <= 0) { clearInterval(interval); label.innerText = ""; }
-        }, 1000);
-    }
-
-    // --- RENDERIZAÇÃO ---
     function renderizar(m, key) {
-        if(document.getElementById(key)) return;
-        const div = document.createElement('div');
-        div.id = key;
+        if(document.getElementById(`msg-${key}`)) return;
+        const div = document.createElement("div");
         const isM = m.nick === nickAtual;
-        
-        if(m.tipo === 'sistema') {
-            div.style.width = "100%";
-            div.innerHTML = `<center><small style="color:#94a3b8; margin: 10px 0;">${m.texto}</small></center>`;
+        div.id = `msg-${key}`;
+        div.className = `msg ${isM ? 'msg-in' : 'msg-out'}`;
+        div.onclick = (e) => mostrarReacoes(e, key);
+
+        if(m.tipo === "sistema") {
+            div.innerHTML = `<center><small style="color:#94a3b8">${m.texto}</small></center>`;
         } else {
-            div.className = `msg ${isM ? 'msg-in' : 'msg-out'}`;
-            let cor = getCorNick(m.nick || "Sistema");
-            let conteudo = `<small style="color:${isM ? '#fff' : cor}">${m.nick}</small>`;
+            let hash = 0; for (let i = 0; i < m.nick.length; i++) hash = m.nick.charCodeAt(i) + ((hash << 5) - hash);
+            let nC = `hsl(${Math.abs(hash % 360)}, 70%, 75%)`;
+            
+            let conteudo = `<small style="color:${nC}">${m.nick}</small>`;
             
             if(m.tipo === 'audio') {
-                conteudo += `<audio controls src="${decripto(m.data)}"></audio><span class="burn-tag">Auto-destrói em 1m</span>`;
+                conteudo += `<audio controls src="${descriptografar(m.data)}"></audio><span class="burn-tag">Auto-destrói em 1m</span>`;
             } else {
-                conteudo += decripto(m.texto);
+                let txt = m.burn ? "🔥 *Mensagem Autodestrutiva*" : descriptografar(m.texto);
+                if(m.burn && isM) txt = "🔥 " + descriptografar(m.texto);
+                conteudo += txt;
             }
-            div.innerHTML = conteudo;
+            
+            div.innerHTML = conteudo + `<span class="reacao-tag" id="react-${key}">${m.reacao || ''}</span>`;
+            
+            // Autodestruição para burn OU áudio (sempre 1 min)
+            if(m.burn || m.tipo === 'audio') {
+                let tempo = m.tipo === 'audio' ? 60000 : 15000;
+                setTimeout(() => { if(isM) db.ref(`salas/${salaAtual}/mensagens/${key}`).remove(); }, tempo);
+            }
         }
-        
         document.getElementById('mensagens').appendChild(div);
         document.getElementById('mensagens').scrollTop = document.getElementById('mensagens').scrollHeight;
     }
 
-    // --- ENVIO ---
     function enviarTexto() {
-        const t = document.getElementById('texto');
-        const val = t.value.trim();
-        if(!val || verificarSpam(val)) return;
-        
+        const t = document.getElementById('texto'); const val = t.value.trim();
+        if(!val || Date.now() < bloqueadoAte) return;
         db.ref(`salas/${salaAtual}/mensagens`).push({ 
-            nick: nickAtual, 
-            texto: cripto(val), 
-            timestamp: Date.now() 
+            nick: nickAtual, texto: criptografar(val), burn: isBurn, timestamp: Date.now() 
         });
-        t.value = '';
+        t.value = ""; if(isBurn) toggleBurn();
+        db.ref(`salas/${salaAtual}/typing/${auth.currentUser.uid}`).remove();
     }
 
-    // --- GRAVAÇÃO DE ÁUDIO (MÁX 1 MINUTO) ---
+    // --- LÓGICA DE ÁUDIO ---
     async function startRecording() {
-        if (Date.now() < bloqueadoAte) return;
         audioChunks = [];
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             mediaRecorder = new MediaRecorder(stream);
-            
             mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
             mediaRecorder.onstop = async () => {
                 const blob = new Blob(audioChunks, { type: 'audio/webm' });
                 const reader = new FileReader();
                 reader.readAsDataURL(blob);
                 reader.onloadend = () => {
-                    const base64 = reader.result;
-                    const ref = db.ref(`salas/${salaAtual}/mensagens`).push({
-                        nick: nickAtual, tipo: 'audio', data: cripto(base64), timestamp: Date.now()
+                    db.ref(`salas/${salaAtual}/mensagens`).push({
+                        nick: nickAtual, tipo: 'audio', data: criptografar(reader.result), timestamp: Date.now()
                     });
-                    setTimeout(() => db.ref(`salas/${salaAtual}/mensagens/${ref.key}`).remove(), 60000);
                 };
                 stream.getTracks().forEach(t => t.stop());
             };
-
             mediaRecorder.start();
             document.getElementById('btn-mic').classList.add('recording');
-
-            // Trava de 1 minuto (60000ms)
-            timerGravacao = setTimeout(() => {
-                if(mediaRecorder.state === "recording") {
-                    stopRecording();
-                    alert("Limite de 1 minuto atingido!");
-                }
-            }, 60000);
-
-        } catch (err) {
-            alert("Ative o microfone para gravar.");
-        }
+            timerGravacao = setTimeout(() => { if(mediaRecorder.state === "recording") stopRecording(); }, 60000);
+        } catch (err) { alert("Ative o microfone."); }
     }
 
     function stopRecording() {
@@ -263,8 +317,28 @@
         }
     }
 
-    function sairDaSala() { location.reload(); }
-    function inicializarApp() { console.log("Swiftly Pro Online"); }
+    function mostrarReacoes(e, key) {
+        e.stopPropagation(); msgAlvo = key;
+        const menu = document.getElementById('menu-reacoes');
+        menu.style.display = 'flex';
+        menu.style.top = (e.pageY - 50) + 'px'; menu.style.left = (e.pageX - 50) + 'px';
+    }
+
+    function reagir(emoji) {
+        if(msgAlvo) db.ref(`salas/${salaAtual}/mensagens/${msgAlvo}`).update({ reacao: emoji });
+        document.getElementById('menu-reacoes').style.display = 'none';
+    }
+
+    document.addEventListener('click', () => {
+        document.getElementById('menu-reacoes').style.display = 'none';
+        document.getElementById('menu-config').style.display = 'none';
+        document.getElementById('menu-anexos').style.display = 'none';
+    });
+
+    async function inicializarApp() { await garantirAuth(); }
+    function sairDaSala() { sessionStorage.clear(); window.location.href = window.location.pathname; }
+    async function entrarAutomatico() { const n = document.getElementById('nick-rapido').value.trim(); if(!n) return; const s = Math.random().toString(36).substring(2, 8).toUpperCase(); senhaSalaAtual = s; conectar(n, s, true); }
+    async function criarSalaPrivada() { const n = document.getElementById('nick-criar').value.trim(), s = document.getElementById('nova-sala').value.trim().toUpperCase() || Math.random().toString(36).substring(2, 8).toUpperCase(), pw = document.getElementById('nova-senha').value.trim(); if(!n) return; senhaSalaAtual = pw || s; if(pw) db.ref(`salas/${s}/config`).set({senha:pw}); conectar(n, s, true); }
 </script>
 </body>
 </html>
